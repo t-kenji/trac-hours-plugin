@@ -9,6 +9,7 @@
 #
 
 from trac.core import Component, implements
+from trac.db import DatabaseManager
 from trac.db.schema import Column, Index, Table
 from trac.env import IEnvironmentSetupParticipant
 
@@ -22,9 +23,6 @@ from usermanual import *
 #except:
 #    pass
 
-
-
-from tracsqlhelper import *
 
 # totalhours be a computed field, but computed fields don't yet exist for trac
 custom_fields = {
@@ -129,11 +127,18 @@ class SetupTracHours(Component):
             Index(['worker']),
             Index(['time_started'])]
 
-        create_table(self.env, ticket_time_table)
-        execute_non_query(self.env, """
-            INSERT INTO system (name, value) 
-            VALUES ('trachours.db_version', '1')
-            """)
+        with self.env.db_transaction as db:
+            conn, _ = DatabaseManager(self.env).get_connector()
+            stmts = conn.to_sql(ticket_time_table)
+            for stmt in stmts:
+                cur = db.cursor()
+                cur.execute(stmt)
+
+            cur = db.cursor()
+            cur.execute("""
+                INSERT INTO system (name, value) 
+                VALUES ('trachours.db_version', '1')
+                """)
 
     def update_custom_fields(self):
         ticket_custom = 'ticket-custom'
@@ -153,13 +158,21 @@ class SetupTracHours(Component):
             Column('description'),
             Column('query')]
 
-        create_table(self.env, time_query_table)
+        with self.env.db_transaction as db:
+            conn, _ = DatabaseManager(self.env).get_connector()
+            stmts = conn.to_sql(ticket_query_table)
+            for stmt in stmts:
+                cur = db.cursor()
+                cur.execute(stmt)
 
     def initialize_old_tickets(self):
-        execute_non_query(self.env, """
-            INSERT INTO ticket_custom (ticket, name, value)
-            SELECT id, 'totalhours', '0' FROM ticket WHERE id NOT IN (
-            SELECT ticket FROM ticket_custom WHERE name='totalhours');""")
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""
+                INSERT INTO ticket_custom (ticket, name, value)
+                SELECT id, 'totalhours', '0' FROM ticket WHERE id NOT IN (
+                SELECT ticket FROM ticket_custom WHERE name='totalhours');
+                """)
 
     def install_manual(self):
         if self._needs_user_manual():

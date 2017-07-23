@@ -31,7 +31,6 @@ from trac.web.chrome import (
     web_context
 )
 
-from tracsqlhelper import *
 from multiproject import MultiprojectHours
 from utils import get_all_users, get_date
 
@@ -71,17 +70,30 @@ class TracHoursPlugin(Component):
 
     def tickets_with_hours(self):
         """return all ticket.ids with hours"""
-        return set(get_column(self.env, 'ticket_time', 'ticket'))
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""SELECT ticket FROM ticket_time""")
+            return [datum[0] for datum in cur.fetchall()]
 
     def update_ticket_hours(self, ids):
         """
         update the totalhours ticket field from the tracked hours information
         * ids: ticket ids (list)
         """
-        results = get_all_dict(self.env, """
-            SELECT SUM(seconds_worked) AS t, ticket
-            FROM ticket_time WHERE ticket IN (%s) GROUP BY ticket
-            """ % ",".join(map(str, ids)))
+        results = []
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""
+                SELECT SUM(seconds_worked) AS t, ticket
+                FROM ticket_time WHERE ticket IN (%s) GROUP BY ticket
+                """ % ",".join(map(str, ids)))
+            rows = cur.fetchall()
+            desc = cur.description
+            for row in rows:
+                row_dict = {}
+                for field, col in zip(row, desc):
+                    row_dict[col[0]] = field
+                results.append(row_dict)
 
         # If no work has been logged for a ticket id, nothing will be
         # returned for that id, but we want it to return 0
@@ -95,10 +107,12 @@ class TracHoursPlugin(Component):
 
         for result in results:
             formatted = '%8.2f' % (float(result['t']) / 3600.0)
-            execute_non_query(self.env, """
-                UPDATE ticket_custom SET value=%s
-                WHERE name='totalhours' AND ticket=%s
-                """, formatted, result['ticket'])
+            with self.env.db_transaction as db:
+                cur = db.cursor()
+                cur.execute("""
+                    UPDATE ticket_custom SET value=%s
+                    WHERE name='totalhours' AND ticket=%s
+                    """, (formatted, result['ticket']))
 
     def get_ticket_hours(self, ticket_id, from_date=None, to_date=None,
                          worker_filter=None):
@@ -127,9 +141,20 @@ class TracHoursPlugin(Component):
             where += " AND worker = %s"
             args.append(worker_filter)
 
-        return get_all_dict(self.env, """
-            SELECT * FROM ticket_time WHERE %s
-            """ % where, *args)
+        results = []
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""
+                SELECT * FROM ticket_time WHERE %s
+                """ % where, args)
+            rows = cur.fetchall()
+            desc = cur.description
+            for row in rows:
+                row_dict = {}
+                for field, col in zip(row, desc):
+                    row_dict[col[0]] = field
+                results.append(row_dict)
+        return results
 
     def get_total_hours(self, ticket_id):
         """return total SECONDS associated with ticket_id"""
@@ -169,9 +194,11 @@ class TracHoursPlugin(Component):
                                          seconds_worked,
                                          comments) VALUES
 (%s, %s, %s, %s, %s, %s, %s)"""
-        execute_non_query(self.env, sql, tid, int(time.time()),
-                          worker, submitter, time_started,
-                          seconds_worked, comments)
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute(sql, (tid, int(time.time()),
+                        worker, submitter, time_started,
+                        seconds_worked, comments))
 
         # update the hours on the ticket
         self.update_ticket_hours([tid])
@@ -181,8 +208,11 @@ class TracHoursPlugin(Component):
 
         :param tid: id of the ticket
         """
-        execute_non_query(self.env, """
-            DELETE FROM ticket_time WHERE ticket=%s""", tid)
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""
+                DELETE FROM ticket_time WHERE ticket=%s
+                """, (tid,))
 
     # IPermissionRequestor methods
     def get_permission_actions(self):
@@ -322,9 +352,19 @@ class TracHoursPlugin(Component):
     # Methods for the query interface
 
     def get_query(self, query_id):
-        results = get_all_dict(self.env, """
-            SELECT title, description, query FROM ticket_time_query WHERE id=%s
-            """, query_id)
+        results = []
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""
+                SELECT title, description, query FROM ticket_time_query WHERE id=%s
+                """, query_id)
+            rows = cur.fetchall()
+            desc = cur.description
+            for row in rows:
+                row_dict = {}
+                for field, col in zip(row, desc):
+                    row_dict[col[0]] = field
+                results.append(row_dict)
         if not results:
             raise KeyError("No such query %s" % query_id)
         return results[0]
@@ -343,23 +383,31 @@ class TracHoursPlugin(Component):
             id_ = int(req.args['id'])
             if id_:
                 # save over an existing query
-                execute_non_query(self.env, """
-                    UPDATE ticket_time_query SET title = %s, description = %s,
-                    QUERY = %s WHERE id = %s
-                    """, req.args['title'], req.args['description'],
-                    req.args['query'], id_)
+                with self.env.db_transaction as db:
+                    cur = db.cursor()
+                    cur.execute("""
+                        UPDATE ticket_time_query SET title = %s, description = %s,
+                        QUERY = %s WHERE id = %s
+                        """, (req.args['title'], req.args['description'],
+                              req.args['query'], id_))
 
             else:
                 # create a new query
-                execute_non_query(self.env, """
-                    INSERT INTO ticket_time_query(title, description, query)
-                    VALUES (%s, %s, %s)
-                    """, req.args['title'], req.args['description'],
-                    req.args['query'])
+                with self.env.db_transaction as db:
+                    cur = db.cursor()
+                    cur.execute("""
+                        INSERT INTO ticket_time_query(title, description, query)
+                        VALUES (%s, %s, %s)
+                        """, (req.args['title'], req.args['description'],
+                              req.args['query']))
                 # fixme: duplicate title?
-                id_ = get_scalar(self.env, """
-                    SELECT id FROM ticket_time_query WHERE title = %s
-                    """, 0, req.args['title'])
+                with self.env.db_transaction as db:
+                    cur = db.cursor()
+                    cur.execute("""
+                        SELECT id FROM ticket_time_query WHERE title = %s
+                        """, (req.args['title'],))
+                    data = cur.fetchone()
+                    id_ = data[0]
 
             req.redirect(req.href('hours') + '?query_id=%s&%s'
                          % (id_, req.args['query']))
@@ -375,9 +423,20 @@ class TracHoursPlugin(Component):
 
         else:
             # list
-            data['queries'] = get_all_dict(self.env, """
-                SELECT id, title, description, query FROM ticket_time_query
-                """)
+            results = []
+            with self.env.db_transaction as db:
+                cur = db.cursor()
+                cur.execute("""
+                    SELECT id, title, description, query FROM ticket_time_query
+                    """)
+                rows = cur.fetchall()
+                desc = cur.description
+                for row in rows:
+                    row_dict = {}
+                    for field, col in zip(row, desc):
+                        row_dict[col[0]] = field
+                    results.append(row_dict)
+            data['queries'] = results
             return 'hours_listqueries.html', data, 'text/html'
         return 'hours_savequery.html', data, 'text/html'
 
@@ -401,7 +460,9 @@ class TracHoursPlugin(Component):
             assert req.perm.has_permission('TICKET_ADD_HOURS')
             query_id = req.args['query_id']
             sql = "DELETE FROM ticket_time_query WHERE id=%s"
-            execute_non_query(self.env, sql, query_id)
+            with self.env.db_transaction as db:
+                cur = db.cursor()
+                cur.execute(sql, (query_id,))
             if 'query_id' in req.args:
                 del req.args['query_id']
             return False
@@ -1115,13 +1176,17 @@ class TracHoursPlugin(Component):
                 continue
 
             if new_hours[id_]:
-                execute_non_query(self.env, """
-                    UPDATE ticket_time SET seconds_worked=%s WHERE id=%s
-                    """, new_hours[id_], id_)
+                with self.env.db_transaction as db:
+                    cur = db.cursor()
+                    cur.execute("""
+                        UPDATE ticket_time SET seconds_worked=%s WHERE id=%s
+                        """, (new_hours[id_], id_))
             else:
-                execute_non_query(self.env, """
-                    DELETE FROM ticket_time WHERE id=%s
-                    """, id_)
+                with self.env.db_transaction as db:
+                    cur = db.cursor()
+                    cur.execute("""
+                        DELETE FROM ticket_time WHERE id=%s
+                        """, (id_,))
 
         self.update_ticket_hours(tickets)
 

@@ -28,9 +28,6 @@ from trac.web.chrome import (
 )
 
 from hours import TracHoursPlugin
-from ticketsidebarprovider.interface import ITicketSidebarProvider
-from ticketsidebarprovider.ticketsidebar import TicketSidebarProvider
-from tracsqlhelper import get_all_dict
 from utils import get_date, hours_format
 
 
@@ -149,23 +146,6 @@ class TracHoursRoadmapFilter(Component):
                                       class_='interval'))
                 return iter(tag.p(*items, class_='legend'))
 
-
-class TracHoursSidebarProvider(Component):
-    implements(ITicketSidebarProvider)
-
-    # ITicketSidebarProvider methods
-
-    def enabled(self, req, ticket):
-        if ticket.id and req.authname and 'TICKET_ADD_HOURS' in req.perm:
-            return True
-        return False
-
-    def content(self, req, ticket):
-        data = {'worker': req.authname,
-                'action': req.href('hours', ticket.id)}
-        return Chrome(self.env). \
-            load_template('hours_sidebar.html').generate(**data)
-
     # ITemplateProvider methods
 
     def get_htdocs_dirs(self):
@@ -259,11 +239,22 @@ class TracUserHours(Component):
         # get the hours
         # trachours = TracHoursPlugin(self.env)
         # tickets = trachours.tickets_with_hours()
-        hours = get_all_dict(self.env, """
-            SELECT * FROM ticket_time
-            WHERE time_started >= %s AND time_started < %s
-            """, *[int(time.mktime(i.timetuple()))
+        hours = []
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""
+                SELECT * FROM ticket_time
+                WHERE time_started >= %s AND time_started < %s
+                """, [int(time.mktime(i.timetuple()))
                    for i in (data['from_date'], data['to_date'])])
+            rows = cur.fetchall()
+            desc = cur.description
+            for row in rows:
+                row_dict = {}
+                for field, col in zip(row, desc):
+                    row_dict[col[0]] = field
+                hours.append(row_dict)
+
         worker_hours = {}
         for entry in hours:
             worker = entry['worker']
@@ -300,10 +291,21 @@ class TracUserHours(Component):
         args = [user]
         args += [int(time.mktime(i.timetuple()))
                  for i in (data['from_date'], data['to_date'])]
-        hours = get_all_dict(self.env, """
-            SELECT * FROM ticket_time
-            WHERE worker=%s AND time_started >= %s AND time_started < %s
-            """, *args)
+        hours = []
+        with self.env.db_transaction as db:
+            cur = db.cursor()
+            cur.execute("""
+                SELECT * FROM ticket_time
+                WHERE worker=%s AND time_started >= %s AND time_started < %s
+                """, args)
+            rows = cur.fetchall()
+            desc = cur.description
+            for row in rows:
+                row_dict = {}
+                for field, col in zip(row, desc):
+                    row_dict[col[0]] = field
+                hours.append(row_dict)
+
         worker_hours = {}
         for entry in hours:
             ticket = entry['ticket']
