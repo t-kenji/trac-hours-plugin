@@ -31,10 +31,8 @@ from trac.web.chrome import (
     web_context
 )
 
-from componentdependencies.interface import IRequireComponents
 from tracsqlhelper import *
 from multiproject import MultiprojectHours
-from setup import SetupTracHours
 from utils import get_all_users, get_date
 
 
@@ -58,7 +56,6 @@ class TracHoursPlugin(Component):
     implements(INavigationContributor,
                IPermissionRequestor,
                IRequestHandler,
-               IRequireComponents,
                ITemplateProvider,
                ITemplateStreamFilter,
                ITicketManipulator)
@@ -186,10 +183,6 @@ class TracHoursPlugin(Component):
         """
         execute_non_query(self.env, """
             DELETE FROM ticket_time WHERE ticket=%s""", tid)
-
-    # IRequireComponents methods
-    def requires(self):
-        return [SetupTracHours]
 
     # IPermissionRequestor methods
     def get_permission_actions(self):

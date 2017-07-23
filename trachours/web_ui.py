@@ -27,7 +27,6 @@ from trac.web.chrome import (
     Chrome, ITemplateProvider, add_link, add_stylesheet
 )
 
-from componentdependencies.interface import IRequireComponents
 from hours import TracHoursPlugin
 from ticketsidebarprovider.interface import ITicketSidebarProvider
 from ticketsidebarprovider.ticketsidebar import TicketSidebarProvider
@@ -36,12 +35,7 @@ from utils import get_date, hours_format
 
 
 class TracHoursRoadmapFilter(Component):
-    implements(IRequireComponents, ITemplateStreamFilter)
-
-    # IRequireComponents methods
-
-    def requires(self):
-        return [TracHoursPlugin]
+    implements(ITemplateStreamFilter)
 
     # ITemplateStreamFilter methods
 
@@ -157,12 +151,7 @@ class TracHoursRoadmapFilter(Component):
 
 
 class TracHoursSidebarProvider(Component):
-    implements(ITicketSidebarProvider, IRequireComponents)
-
-    # IRequireComponents methods
-
-    def requires(self):
-        return [TracHoursPlugin, TicketSidebarProvider]
+    implements(ITicketSidebarProvider)
 
     # ITicketSidebarProvider methods
 
@@ -188,12 +177,7 @@ class TracHoursSidebarProvider(Component):
 
 
 class TracUserHours(Component):
-    implements(IRequireComponents, ITemplateProvider, IRequestHandler)
-
-    # IRequireComponents methods
-
-    def requires(self):
-        return [TracHoursPlugin]
+    implements(ITemplateProvider, IRequestHandler)
 
     # ITemplateProvider methods
 
