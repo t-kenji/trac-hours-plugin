@@ -29,7 +29,6 @@ setup(name='TracHours',
       zip_safe=False,
       install_requires=[
           'Trac',
-          'python-dateutil',
           'FeedParser',
       ],
       extras_require=dict(lxml=['lxml']),

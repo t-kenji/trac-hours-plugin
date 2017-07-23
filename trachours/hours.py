@@ -9,7 +9,6 @@
 
 import calendar
 import csv
-import dateutil.parser
 import re
 import time
 from StringIO import StringIO
@@ -985,8 +984,7 @@ class TracHoursPlugin(Component):
 
                 # the 'GMT' business is wrong
                 # maybe use py2rssgen a la bitsyblog?
-                time_started = dateutil.parser.parse(
-                    entry['time_started'])  # XXX hack
+                time_started = datetime.strptime(entry['time_started'], '%B %d, %Y')
                 item['date'] = time_started.strftime('%a, %d %b %Y %T GMT')
 
                 link = req.abs_href(req.path_info, entry['ticket'])
