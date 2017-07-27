@@ -10,6 +10,9 @@
 from trac.core import Component, implements
 from trac.perm import PermissionCache
 from trac.ticket.api import ITicketChangeListener, ITicketManipulator
+from trac.web.api import ITemplateStreamFilter
+from genshi.builder import tag
+from genshi.filters.transform import Transformer
 
 from hours import TracHoursPlugin
 
@@ -27,16 +30,31 @@ class TracHoursByComment(Component):
 
     if IEmailHandler:
         implements(IEmailHandler, ITicketChangeListener,
-                   ITicketManipulator)
+                   ITicketManipulator, ITemplateStreamFilter)
     else:
         implements(ITicketChangeListener,
-                   ITicketManipulator)
+                   ITicketManipulator, ITemplateStreamFilter)
 
     # for ticket comments: 1.5 hours or 1:30 hours
     hours_regex = r'(([0-9]+(\.[0-9]+)?)|([0-9]+:[0-5][0-9])) *hours'
 
     # for singular hours: 1 hour
     singular_hour_regex = r'((^)|(\s*))1 *hour((\W)|($))'
+
+    # ITemplateStreamFilter methods
+
+    def filter_stream(self, req, method, filename, stream, data):
+        if filename == 'ticket.html' \
+           and 'TICKET_ADD_HOURS' in req.perm(data['ticket'].resource):
+
+            filter = Transformer('//div[@id="trac-add-comment"]//fieldset')
+
+            field = tag.div(
+                tag.label(u'Add work hours:', _for='field-work-hours'),
+                tag.input(type='time', id='field-work-hours', name='field_work_hours')
+                )
+            stream = stream | filter.before(field)
+        return stream
 
     # ITicketManipulator methods
 
@@ -49,6 +67,14 @@ class TracHoursByComment(Component):
             if comment:
                 req.args['comment'] = self.munge_comment(comment, ticket)
 
+            hours = req.args.get('field_work_hours')
+            if 'submit' in req.args and hours:
+                worklog = u'worked for {} hours'.format(hours)
+                if comment:
+                    self.add_hours_by_comment(worklog, ticket.id, req.authname)
+                else:
+                    req.args['comment'] = self.munge_comment(worklog, ticket)
+
         return []
 
     def munge_comment(self, comment, ticket):
@@ -59,7 +85,7 @@ class TracHoursByComment(Component):
             return u'[%s %s]' % (('/hours/%s' % ticket.id), match.group())
 
         comment = re.sub(self.hours_regex, replace, comment)
-        comment = re.sub(self.singular_hour_regex, u' [/hours/%s 1 hour]'
+        comment = re.sub(self.singular_hour_regex, u'[/hours/%s 1 hour]'
                                                    % ticket.id, comment)
         return comment
 
