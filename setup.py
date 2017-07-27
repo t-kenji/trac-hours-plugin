@@ -13,6 +13,25 @@ from setuptools import find_packages, setup
 
 version = '0.7.1'
 
+extra = {}
+
+try:
+    from trac.dist import get_l10n_cmdclass
+    from trac.dist import extract_python
+except ImportError:
+    pass
+else:
+    cmdclass = get_l10n_cmdclass()
+    if cmdclass:
+        extra['cmdclass'] = cmdclass
+        extractors = [
+            ('**/templates/**.html', 'genshi', None),
+            ('**.py', 'trac.dist:extract_python', None),
+        ]
+        extra['message_extractors'] = {
+            'trachours': extractors,
+        }
+
 setup(name='TracHours',
       version=version,
       description="Trac the estimated and actual hours spent on tickets",
@@ -25,7 +44,12 @@ setup(name='TracHours',
       license='3-Clause BSD',
       packages=find_packages(exclude=['*.tests']),
       include_package_data=True,
-      package_data={'trachours': ['templates/*']},
+      package_data={
+          'trachours': [
+              'locale/*/LC_MESSAGES/*.mo',
+              'templates/*'
+          ]
+      },
       zip_safe=False,
       install_requires=[
           'Trac',
@@ -41,5 +65,6 @@ setup(name='TracHours',
           trachours.web_ui = trachours.web_ui
       """,
       test_suite='trachours.tests.test_suite',
-      tests_require=[]
+      tests_require=[],
+      **extra
       )

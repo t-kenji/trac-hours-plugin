@@ -7,16 +7,17 @@
 # you should have received as part of this distribution.
 #
 
+import re
+
+from genshi.filters.transform import Transformer
 from trac.core import Component, implements
 from trac.perm import PermissionCache
 from trac.ticket.api import ITicketChangeListener, ITicketManipulator
+from trac.util.html import html as tag
 from trac.web.api import ITemplateStreamFilter
-from genshi.builder import tag
-from genshi.filters.transform import Transformer
 
-from hours import TracHoursPlugin
-
-import re
+from trachours.hours import TracHoursPlugin
+from trachours.setup import _
 
 try:
     from mail2trac.email2ticket import ReplyToTicket
@@ -50,7 +51,7 @@ class TracHoursByComment(Component):
             filter = Transformer('//div[@id="trac-add-comment"]//fieldset')
 
             field = tag.div(
-                tag.label(u'Add work hours:', _for='field-work-hours'),
+                tag.label(_("Add work hours: "), _for='field-work-hours'),
                 tag.input(type='time', id='field-work-hours', name='field_work_hours')
                 )
             stream = stream | filter.before(field)
@@ -69,7 +70,7 @@ class TracHoursByComment(Component):
 
             hours = req.args.get('field_work_hours')
             if 'submit' in req.args and hours:
-                worklog = u'worked for {} hours'.format(hours)
+                worklog = _("Worked for {hours} hours.").format(hours=hours)
                 if comment:
                     self.add_hours_by_comment(worklog, ticket.id, req.authname)
                 else:

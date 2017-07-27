@@ -21,6 +21,7 @@ from trac.web.href import Href
 
 from trachours.feed import total_hours
 from trachours.utils import get_date, hours_format, urljoin
+from trachours.setup import _
 
 try:
     import lxml.html
@@ -100,6 +101,7 @@ def query_from_url(url, path='/hours?format=rss', directory=None):
 
 
 class MultiprojectHours(Component):
+
     implements(IRequestHandler)
 
     # IRequestHandler methods
@@ -188,7 +190,7 @@ class MultiprojectHours(Component):
             kw['worker'] = worker
             url = req.href(req.path_info, **kw)
             row[0] = tag.a(worker, href=url,
-                           title="Cross-project hours for %s" % worker)
+                           title=_("Cross-project hours for {worker}").format(worker=worker))
             project_urls = []
             for index, project in enumerate(data['projects']):
                 kw = req.args.copy()
@@ -196,8 +198,7 @@ class MultiprojectHours(Component):
                 url = Href('/%s' % project)('hours', **kw)
                 hours = hours_format % row[index + 1]
                 project_urls.append(tag.a(hours, href=url,
-                                          title="Hours for %s on %s"
-                                                % (worker, project)))
+                                          title=_("Hours for {worker} on {project}").format(worker=worker, project=project)))
             row[1:-1] = project_urls
             total += row[-1]
             row[-1] = hours_format % row[-1]

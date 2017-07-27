@@ -21,17 +21,18 @@ from trac.core import *
 from trac.ticket import Ticket
 from trac.ticket.model import Milestone
 from trac.util.html import html as tag
-from trac.util.translation import _
 from trac.web.api import IRequestHandler, ITemplateStreamFilter
 from trac.web.chrome import (
     Chrome, ITemplateProvider, add_link, add_stylesheet
 )
 
-from hours import TracHoursPlugin
-from utils import get_date, hours_format
+from trachours.hours import TracHoursPlugin
+from trachours.utils import get_date, hours_format
+from trachours.setup import _
 
 
 class TracHoursRoadmapFilter(Component):
+
     implements(ITemplateStreamFilter)
 
     # ITemplateStreamFilter methods
@@ -135,7 +136,7 @@ class TracHoursRoadmapFilter(Component):
                              from_month=date.month,
                              from_day=date.day)
             if parse_version(TRAC_VERSION) < parse_version('1.0'):
-                items.append(tag.dt(tag.a("Total Hours:", href=link)))
+                items.append(tag.dt(tag.a(_("Total Hours:"), href=link)))
                 items.append(
                     tag.dd(tag.a(hours_format % total_hours, href=link)))
                 return iter(tag.dl(*items))
@@ -157,6 +158,7 @@ class TracHoursRoadmapFilter(Component):
 
 
 class TracUserHours(Component):
+
     implements(ITemplateProvider, IRequestHandler)
 
     # ITemplateProvider methods
@@ -328,7 +330,7 @@ class TracUserHours(Component):
             buffer = StringIO()
             writer = csv.writer(buffer)
             format = '%B %d, %Y'
-            title = "Hours for %s" % user
+            title = _("Hours for {user}").format(user=user)
             writer.writerow([title, req.abs_href()])
             writer.writerow([])
             writer.writerow(['From', 'To'])
@@ -348,7 +350,7 @@ class TracUserHours(Component):
         content.write('\xef\xbb\xbf')  # BOM
         writer = csv.writer(content, delimiter=sep, quoting=csv.QUOTE_MINIMAL)
 
-        title = "Hours for %s" % self.env.project_name
+        title = _("Hours for {project}").format(project=self.env.project_name)
         writer.writerow([title, req.abs_href()])
         writer.writerow([])
         writer.writerow(['From', 'To'])

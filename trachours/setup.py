@@ -8,15 +8,17 @@
 # you should have received as part of this distribution.
 #
 
+from datetime import datetime
+
 from trac.core import Component, implements
 from trac.db import DatabaseManager
 from trac.db.schema import Column, Index, Table
 from trac.env import IEnvironmentSetupParticipant
 
 from trac.util.datefmt import to_utimestamp, utc
-from datetime import datetime
+from trac.util.translation import domain_functions
 
-from usermanual import *
+from trachours.usermanual import *
 
 #try:
 #    from xmlrpc import *
@@ -24,32 +26,36 @@ from usermanual import *
 #    pass
 
 
-# totalhours be a computed field, but computed fields don't yet exist for trac
-custom_fields = {
-    'estimatedhours': {
-        'type': 'text',
-        'label': 'Estimated Hours',
-        'value': '0'
-    },
-    'totalhours': {
-        'type': 'text',
-        'label': 'Total Hours',
-        'value': '0'
-    }
-}
+_, tag_, N_, ngettext, add_domain = domain_functions('trachours',
+    '_', 'tag_', 'N_', 'ngettext', 'add_domain')
 
 
 class SetupTracHours(Component):
+
     implements(IEnvironmentSetupParticipant)
+
+    # totalhours be a computed field, but computed fields don't yet exist for trac
+    custom_fields = {
+        'estimatedhours': {
+            'type': 'text',
+            'label': _('Estimated Hours'),
+            'value': '0'
+        },
+        'totalhours': {
+            'type': 'text',
+            'label': _('Total Hours'),
+            'value': '0'
+        }
+    }
 
     # IEnvironmentSetupParticipant methods
 
-    db_installed_version = None
-    db_version = 4
-
-
     def __init__(self):
+        from pkg_resources import resource_filename
+
+        add_domain(self.env.path, resource_filename(__name__, 'locale'))
         self.db_installed_version =  self.version()
+        self.db_version = 4
 
     def environment_created(self):
         if self.environment_needs_upgrade():
@@ -142,6 +148,7 @@ class SetupTracHours(Component):
 
     def update_custom_fields(self):
         ticket_custom = 'ticket-custom'
+
         for name in custom_fields:
             field = custom_fields[name].copy()
             field_type = field.pop('type', 'text')
