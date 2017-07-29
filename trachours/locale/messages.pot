@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracHours 0.7.1\n"
 "Report-Msgid-Bugs-To: protect.2501@gmail.com\n"
-"POT-Creation-Date: 2017-07-29 08:16+0000\n"
+"POT-Creation-Date: 2017-07-29 16:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,10 +43,10 @@ msgstr ""
 msgid "Work recorded on"
 msgstr ""
 
-#: trachours/hours.py:258 trachours/hours.py:1040
+#: trachours/hours.py:258 trachours/hours.py:1056
 #: trachours/templates/hours_listqueries.html:11
 #: trachours/templates/hours_timeline.html:11
-#: trachours/templates/hours_timeline.html:36
+#: trachours/templates/hours_timeline.html:37
 #: trachours/templates/hours_user.html:90
 #: trachours/templates/hours_users.html:104
 msgid "Hours"
@@ -72,65 +72,65 @@ msgstr ""
 msgid "No such query {id}"
 msgstr ""
 
-#: trachours/hours.py:652
+#: trachours/hours.py:667
 msgid "query_id should be an integer, you put '{id}'"
 msgstr ""
 
-#: trachours/hours.py:781
+#: trachours/hours.py:796
 msgid ""
 "Warning: estimated hours may be counted more than once if a ticket "
 "appears in multiple groups"
 msgstr ""
 
-#: trachours/hours.py:850 trachours/hours.py:950
+#: trachours/hours.py:865 trachours/hours.py:966
 msgid "RSS Feed"
 msgstr ""
 
-#: trachours/hours.py:877 trachours/hours.py:880
+#: trachours/hours.py:892 trachours/hours.py:895
 msgid "Prev Week"
 msgstr ""
 
-#: trachours/hours.py:879 trachours/hours.py:880
+#: trachours/hours.py:894 trachours/hours.py:895
 msgid "Next Week"
 msgstr ""
 
-#: trachours/hours.py:882 trachours/templates/hours_multiproject.html:11
+#: trachours/hours.py:897 trachours/templates/hours_multiproject.html:11
 msgid "Cross-Project Hours"
 msgstr ""
 
-#: trachours/hours.py:884
+#: trachours/hours.py:899
 msgid "Hours by User"
 msgstr ""
 
-#: trachours/hours.py:891
+#: trachours/hours.py:906
 msgid "Saved Queries"
 msgstr ""
 
-#: trachours/hours.py:952
+#: trachours/hours.py:968
 msgid "Back to Ticket #{id}"
 msgstr ""
 
-#: trachours/hours.py:961
+#: trachours/hours.py:977
 msgid "Hours worked on {project} from {from_date} to {to_date}"
 msgstr ""
 
-#: trachours/hours.py:974 trachours/hours.py:1010
+#: trachours/hours.py:990 trachours/hours.py:1026
 msgid "{hour}:{min:02} hours worked by {worker}"
 msgstr ""
 
-#: trachours/hours.py:999
+#: trachours/hours.py:1015
 msgid "Hours worked for ticket {id}"
 msgstr ""
 
-#: trachours/hours.py:1038
+#: trachours/hours.py:1054
 msgid "Hours for {worker}"
 msgstr ""
 
-#: trachours/hours.py:1105
+#: trachours/hours.py:1121
 msgid "Please enter a valid number of hours"
 msgstr ""
 
-#: trachours/hours.py:1114
+#: trachours/hours.py:1130
 msgid "[{url} {hour}\thours] logged for {worker}: ''{comment}''"
 msgstr ""
 
@@ -209,21 +209,21 @@ msgid "Hours for projects:"
 msgstr ""
 
 #: trachours/templates/hours_multiproject.html:22
-#: trachours/templates/hours_timeline.html:47
+#: trachours/templates/hours_timeline.html:49
 #: trachours/templates/hours_user.html:35
 #: trachours/templates/hours_users.html:37
 msgid "Hours from"
 msgstr ""
 
 #: trachours/templates/hours_multiproject.html:39
-#: trachours/templates/hours_timeline.html:64
+#: trachours/templates/hours_timeline.html:66
 #: trachours/templates/hours_user.html:55
 #: trachours/templates/hours_users.html:58
 msgid "to"
 msgstr ""
 
 #: trachours/templates/hours_multiproject.html:60
-#: trachours/templates/hours_timeline.html:238
+#: trachours/templates/hours_timeline.html:268
 #: trachours/templates/hours_user.html:81
 #: trachours/templates/hours_users.html:97
 msgid "Update"
@@ -234,7 +234,7 @@ msgid "Total hours:"
 msgstr ""
 
 #: trachours/templates/hours_query_results.html:28
-#: trachours/templates/hours_timeline.html:39
+#: trachours/templates/hours_timeline.html:40
 #, python-format
 msgid "%(num)s match"
 msgid_plural "%(num)s matches"
@@ -294,7 +294,7 @@ msgid "Query for Query:"
 msgstr ""
 
 #: trachours/templates/hours_savequery.html:44
-#: trachours/templates/hours_timeline.html:283
+#: trachours/templates/hours_timeline.html:313
 msgid "Save query"
 msgstr ""
 
@@ -365,86 +365,94 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:80
+#: trachours/templates/hours_timeline.html:82
 msgid "worked by"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:89
+#: trachours/templates/hours_timeline.html:91
 msgid "Filters"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:91
+#: trachours/templates/hours_timeline.html:93
 msgid "Query filters"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:114
+#: trachours/templates/hours_timeline.html:116
 msgid "or"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:143
+#: trachours/templates/hours_timeline.html:160
 msgid "yes"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:146
+#: trachours/templates/hours_timeline.html:163
 msgid "no"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:170
+#: trachours/templates/hours_timeline.html:175
+msgid ""
+"[1:between]\n"
+"                              [2:]\n"
+"                              [3:and]\n"
+"                              [4:]"
+msgstr ""
+
+#: trachours/templates/hours_timeline.html:200
 msgid "Add filter"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:190
+#: trachours/templates/hours_timeline.html:220
 msgid "Columns"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:203
+#: trachours/templates/hours_timeline.html:233
 msgid "Group results by"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:214
+#: trachours/templates/hours_timeline.html:244
 msgid "descending"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:217
+#: trachours/templates/hours_timeline.html:247
 msgid "Show under each result:"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:225
+#: trachours/templates/hours_timeline.html:255
 msgid "Work Comments"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:230
+#: trachours/templates/hours_timeline.html:260
 msgid "Max items per page"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:274
+#: trachours/templates/hours_timeline.html:304
 #, python-format
 msgid "Edit report {%(id)s} corresponding to this query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:274
+#: trachours/templates/hours_timeline.html:304
 msgid "Edit query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:283
+#: trachours/templates/hours_timeline.html:313
 #, python-format
 msgid "Save updated query in report {%(id)s}"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:283
+#: trachours/templates/hours_timeline.html:313
 msgid "Create new report from current query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:291
+#: trachours/templates/hours_timeline.html:321
 #, python-format
 msgid "Delete report {%(id)s} corresponding to this query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:291
+#: trachours/templates/hours_timeline.html:321
 msgid "Delete query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:298
+#: trachours/templates/hours_timeline.html:328
 msgid ""
 "[1:Note:] See [2:TracQuery]\n"
 "        for help on using queries and [3:TracHoursPluginUserManual] "

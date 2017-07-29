@@ -12,13 +12,14 @@
     <script type="text/javascript" src="${chrome.htdocs_location}js/folding.js"></script>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
+        initializeFilters();
         $("#group").change(function() {
           $("#groupdesc").enable(this.selectedIndex != 0)
         }).change();
         $("fieldset legend.foldable").enableFolding(false);
       /*<![CDATA[*/
         /* Hide the filters for saved queries. */
-        if (window.location.href.search(/[?&amp;]report=[0-9]+/) != -1)
+        if (window.location.href.search(/[?&]report=[0-9]+/) != -1)
           $("#filters").toggleClass("collapsed");
       /*]]>*/
         /* Hide the columns by default. */
@@ -44,7 +45,8 @@
         <p>${query_description}</p>
       </div>
 
-      <form id="query" method="get">
+      <form id="query" method="get"
+            py:with="field_names = sorted(fields.iterkeys(), key=lambda name: fields[name].label.lower())">
         Hours from
         <!-- date + worker selection -->
         <select name="from_month">
@@ -96,13 +98,13 @@
               <py:for each="constraintset in constraints">
                 <py:for each="constraint_name, constraint in constraintset.items()">
                   <tbody py:if="field_name == constraint_name"
-                         py:with="multiline = field.type in ('select', 'text')">
+                         py:with="multiline = field.type in ('select', 'text', 'textarea', 'time')">
                     <py:for each="constraint_idx, constraint_value in enumerate(constraint['values'])">
                       <tr class="${field_name}" py:if="multiline or constraint_idx == 0">
                         <py:choose test="constraint_idx">
                           <py:when test="0">
                             <th scope="row"><label>$field.label</label></th>
-                            <td py:if="field.type not in ('radio', 'checkbox')" class="mode">
+                            <td py:if="field.type not in ('radio', 'checkbox', 'time')" class="mode">
                               <select name="${field_name}_mode">
                                 <option py:for="mode in modes[field.type]" value="$mode.value"
                                         selected="${mode.value == constraint.mode and 'selected' or None}">$mode.name
@@ -111,23 +113,38 @@
                             </td>
                           </py:when>
                           <py:otherwise><!--! not the first line of a multiline constraint -->
-                            <th colspan="2"><label>or</label></th>
+                            <th colspan="${1 if field.type == 'time' else 2}"><label>or</label></th>
                           </py:otherwise>
                         </py:choose>
 
-                        <td class="filter" colspan="${field.type in ('radio', 'checkbox') and 2 or None}"
-                            py:choose="field.type">
+                        <td class="filter" colspan="${field.type in ('radio', 'checkbox', 'time') and 2 or None}"
+                            py:choose="">
 
-                          <py:when test="'select'">
+                        <py:def function="render_options(field_name, options)"
+                                py:choose="field_name">
+                          <option py:when="'owner'"
+                                  py:for="option in options"
+                                  selected="${option.value == constraint_value or None}"
+                                  value="$option.value" py:content="option.name"></option>
+                          <option py:otherwise=""
+                                  py:for="option in options"
+                                  selected="${option == constraint_value or None}"
+                                  value="$option" py:content="option"></option>
+                        </py:def>
+
+                          <py:when test="field.type == 'select'">
                             <select name="${constraint_name}">
                               <option></option>
-                              <option py:for="option in field.options"
-                                      selected="${option == constraint_value and 'selected' or None}">$option
-                              </option>
+                              ${render_options(field.name, field.options)}
+                              <optgroup py:for="optgroup in field.optgroups"
+                                        py:if="optgroup.options"
+                                        label="${optgroup.label}">
+                                ${render_options(field.name, optgroup.options)}
+                              </optgroup>
                             </select>
                           </py:when>
 
-                          <py:when test="'radio'">
+                          <py:when test="field.type == 'radio'">
                             <py:for each="option in field.options">
                               <input type="checkbox" id="${field_name}_$option" name="${field_name}"
                                      value="$option"
@@ -137,7 +154,7 @@
                             </py:for>
                           </py:when>
 
-                          <py:when test="'checkbox'">
+                          <py:when test="field.type == 'checkbox'">
                             <input type="radio" id="${field_name}_on" name="$field_name" value="1"
                                    checked="${constraint.mode != '!' or constraint_value == '1' or None}" />
                             <label for="${field_name}_on">yes</label>
@@ -146,8 +163,21 @@
                             <label for="${field_name}_off">no</label>
                           </py:when>
 
-                          <py:when test="'text'">
+                          <py:when test="field.type in ('text', 'textarea', 'id')">
                             <input type="text" name="${field_name}" value="$constraint_value" size="42" />
+                          </py:when>
+
+                          <py:when test="field.type == 'time'"
+                                   py:with="(start, end) = '..' in constraint_value and constraint_value.split('..', 1)
+                                                           or (constraint_value, '');
+                                            format = field.get('format', 'datetime');
+                                            date_or_datetime = 'date' if format == 'relative' else format;">
+                            <i18n:msg>
+                              <label>between</label>
+                              <input type="text" name="${field_name}" value="$start" size="14" class="trac-${date_or_datetime}picker" />
+                              <label>and</label>
+                              <input type="text" name="${field_name}_end" value="$end" size="14" class="trac-${date_or_datetime}picker" />
+                            </i18n:msg>
                           </py:when>
 
                         </td>

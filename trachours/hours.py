@@ -19,12 +19,12 @@ from trac.core import *
 from trac.perm import IPermissionRequestor
 from trac.ticket.api import ITicketManipulator, TicketSystem
 from trac.ticket.model import Ticket
-from trac.ticket.query import Query
+from trac.ticket.query import Query, QueryValueError
 from trac.util.datefmt import to_timestamp, utc
 from trac.util.html import html as tag
 from trac.web.api import IRequestHandler, ITemplateStreamFilter
 from trac.web.chrome import (
-    INavigationContributor, ITemplateProvider, add_ctxtnav,
+    Chrome, INavigationContributor, ITemplateProvider, add_ctxtnav,
     add_link, add_script, add_stylesheet, add_warning, prevnext_nav,
     web_context
 )
@@ -543,9 +543,9 @@ class TracHoursPlugin(Component):
     def _get_constraints(self, req):
         constraints = {}
 
-        ticket_fields = [f['name'] for f in
-                         TicketSystem(self.env).get_ticket_fields()]
-        ticket_fields.append('id')
+        ticket_fields = dict((f['name'], f) for f in
+                         TicketSystem(self.env).get_ticket_fields())
+        ticket_fields['id'] = {'type': 'id'}
 
         # For clients without JavaScript, we remove constraints here if
         # requested
@@ -561,10 +561,17 @@ class TracHoursPlugin(Component):
 
         for field in [k for k in req.args.keys() if k in ticket_fields]:
             vals = req.args.getlist(field)
+            if not isinstance(vals, (list, tuple)):
+                vals = [vals]
             if vals:
                 mode = req.args.get(field + '_mode')
                 if mode:
                     vals = [mode + x for x in vals]
+                if ticket_fields[field]['type'] == 'time':
+                    ends = req.args.getlist(field + '_end')
+                    if ends:
+                        vals = [start + '..' + end
+                                for (start, end) in zip(vals, ends)]
                 if field in remove_constraints:
                     idx = remove_constraints[field]
                     if idx >= 0:
@@ -607,19 +614,24 @@ class TracHoursPlugin(Component):
         query_time = int(req.session.get('query_time', 0))
         query_time = datetime.fromtimestamp(query_time, utc)
         query_constraints = unicode(query.constraints)
-        if query_constraints != req.session.get('query_constraints') \
-                or query_time < orig_time - timedelta(hours=1):
-            tickets = query.execute(req)
-            # New or outdated query, (re-)initialize session vars
-            req.session['query_constraints'] = query_constraints
-            req.session['query_tickets'] = ' '.join(str(t['id'])
-                                                    for t in tickets)
-        else:
-            orig_list = [int(id_)
-                         for id_
-                         in req.session.get('query_tickets', '').split()]
-            tickets = query.execute(req, cached_ids=orig_list)
-            orig_time = query_time
+        try:
+            if query_constraints != req.session.get('query_constraints') \
+                    or query_time < orig_time - timedelta(hours=1):
+                tickets = query.execute(req)
+                # New or outdated query, (re-)initialize session vars
+                req.session['query_constraints'] = query_constraints
+                req.session['query_tickets'] = ' '.join(str(t['id'])
+                                                        for t in tickets)
+            else:
+                orig_list = [int(id_)
+                             for id_
+                             in req.session.get('query_tickets', '').split()]
+                tickets = query.execute(req, cached_ids=orig_list)
+                orig_time = query_time
+        except QueryValueError as e:
+            tickets = []
+            for error in e.errors:
+                add_warning(req, error)
 
         context = web_context(req, 'query')
         ticket_data = query.template_data(context, tickets, orig_list,
@@ -892,6 +904,7 @@ class TracHoursPlugin(Component):
 
         add_stylesheet(req, 'common/css/report.css')
         add_script(req, 'common/js/query.js')
+        Chrome(self.env).add_jquery_ui(req)
 
         return 'hours_timeline.html', data, 'text/html'
 

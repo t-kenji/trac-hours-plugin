@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracHours 0.7.1\n"
 "Report-Msgid-Bugs-To: protect.2501@gmail.com\n"
-"POT-Creation-Date: 2017-07-29 08:16+0000\n"
+"POT-Creation-Date: 2017-07-29 16:40+0000\n"
 "PO-Revision-Date: 2017-07-27 07:35+0000\n"
 "Last-Translator: t-kenji<protect.2501@gmail.com>\n"
 "Language: ja\n"
@@ -44,10 +44,10 @@ msgstr "実施日時"
 msgid "Work recorded on"
 msgstr "登録日時"
 
-#: trachours/hours.py:258 trachours/hours.py:1040
+#: trachours/hours.py:258 trachours/hours.py:1056
 #: trachours/templates/hours_listqueries.html:11
 #: trachours/templates/hours_timeline.html:11
-#: trachours/templates/hours_timeline.html:36
+#: trachours/templates/hours_timeline.html:37
 #: trachours/templates/hours_user.html:90
 #: trachours/templates/hours_users.html:104
 msgid "Hours"
@@ -73,65 +73,65 @@ msgstr "チケット {id} の作業時間"
 msgid "No such query {id}"
 msgstr "クエリ {id} がありません"
 
-#: trachours/hours.py:652
+#: trachours/hours.py:667
 msgid "query_id should be an integer, you put '{id}'"
 msgstr "query_id は整数でなければなりませんが、あなたの入力は '{id}' です"
 
-#: trachours/hours.py:781
+#: trachours/hours.py:796
 msgid ""
 "Warning: estimated hours may be counted more than once if a ticket "
 "appears in multiple groups"
 msgstr "警告: チケットが複数のグループに表示される場合、見積時間は重複してカウントされる可能性があります"
 
-#: trachours/hours.py:850 trachours/hours.py:950
+#: trachours/hours.py:865 trachours/hours.py:966
 msgid "RSS Feed"
 msgstr "RSS フィード"
 
-#: trachours/hours.py:877 trachours/hours.py:880
+#: trachours/hours.py:892 trachours/hours.py:895
 msgid "Prev Week"
 msgstr "先週"
 
-#: trachours/hours.py:879 trachours/hours.py:880
+#: trachours/hours.py:894 trachours/hours.py:895
 msgid "Next Week"
 msgstr "翌週"
 
-#: trachours/hours.py:882 trachours/templates/hours_multiproject.html:11
+#: trachours/hours.py:897 trachours/templates/hours_multiproject.html:11
 msgid "Cross-Project Hours"
 msgstr "プロジェクト間の作業時間"
 
-#: trachours/hours.py:884
+#: trachours/hours.py:899
 msgid "Hours by User"
 msgstr "作業者毎の作業時間"
 
-#: trachours/hours.py:891
+#: trachours/hours.py:906
 msgid "Saved Queries"
 msgstr "保存されたクエリ"
 
-#: trachours/hours.py:952
+#: trachours/hours.py:968
 msgid "Back to Ticket #{id}"
 msgstr "チケット #{id} に戻る"
 
-#: trachours/hours.py:961
+#: trachours/hours.py:977
 msgid "Hours worked on {project} from {from_date} to {to_date}"
 msgstr "{from_date} から {to_date} までの {project} の作業時間"
 
-#: trachours/hours.py:974 trachours/hours.py:1010
+#: trachours/hours.py:990 trachours/hours.py:1026
 msgid "{hour}:{min:02} hours worked by {worker}"
 msgstr "{worker} が {hour}:{min:02} 作業しました"
 
-#: trachours/hours.py:999
+#: trachours/hours.py:1015
 msgid "Hours worked for ticket {id}"
 msgstr "チケット {id} の作業時間"
 
-#: trachours/hours.py:1038
+#: trachours/hours.py:1054
 msgid "Hours for {worker}"
 msgstr "{worker} の作業時間"
 
-#: trachours/hours.py:1105
+#: trachours/hours.py:1121
 msgid "Please enter a valid number of hours"
 msgstr "有効な作業時間を入力してください"
 
-#: trachours/hours.py:1114
+#: trachours/hours.py:1130
 msgid "[{url} {hour}\thours] logged for {worker}: ''{comment}''"
 msgstr "{worker} に [{url} {hour}\thours] を記録しました: ''{comment}''"
 
@@ -210,21 +210,21 @@ msgid "Hours for projects:"
 msgstr "プロジェクトの作業時間:"
 
 #: trachours/templates/hours_multiproject.html:22
-#: trachours/templates/hours_timeline.html:47
+#: trachours/templates/hours_timeline.html:49
 #: trachours/templates/hours_user.html:35
 #: trachours/templates/hours_users.html:37
 msgid "Hours from"
 msgstr "作業時間の表示期間"
 
 #: trachours/templates/hours_multiproject.html:39
-#: trachours/templates/hours_timeline.html:64
+#: trachours/templates/hours_timeline.html:66
 #: trachours/templates/hours_user.html:55
 #: trachours/templates/hours_users.html:58
 msgid "to"
 msgstr "〜"
 
 #: trachours/templates/hours_multiproject.html:60
-#: trachours/templates/hours_timeline.html:238
+#: trachours/templates/hours_timeline.html:268
 #: trachours/templates/hours_user.html:81
 #: trachours/templates/hours_users.html:97
 msgid "Update"
@@ -235,7 +235,7 @@ msgid "Total hours:"
 msgstr "合計作業時間:"
 
 #: trachours/templates/hours_query_results.html:28
-#: trachours/templates/hours_timeline.html:39
+#: trachours/templates/hours_timeline.html:40
 #, python-format
 msgid "%(num)s match"
 msgid_plural "%(num)s matches"
@@ -294,7 +294,7 @@ msgid "Query for Query:"
 msgstr "検索クエリ:"
 
 #: trachours/templates/hours_savequery.html:44
-#: trachours/templates/hours_timeline.html:283
+#: trachours/templates/hours_timeline.html:313
 msgid "Save query"
 msgstr "このクエリを保存"
 
@@ -365,86 +365,94 @@ msgstr "詳細 (任意):"
 msgid "Add"
 msgstr "追加"
 
-#: trachours/templates/hours_timeline.html:80
+#: trachours/templates/hours_timeline.html:82
 msgid "worked by"
 msgstr "作業者"
 
-#: trachours/templates/hours_timeline.html:89
+#: trachours/templates/hours_timeline.html:91
 msgid "Filters"
 msgstr "フィルタ"
 
-#: trachours/templates/hours_timeline.html:91
+#: trachours/templates/hours_timeline.html:93
 msgid "Query filters"
 msgstr "検索フィルタ"
 
-#: trachours/templates/hours_timeline.html:114
+#: trachours/templates/hours_timeline.html:116
 msgid "or"
 msgstr "もしくは"
 
-#: trachours/templates/hours_timeline.html:143
+#: trachours/templates/hours_timeline.html:160
 msgid "yes"
 msgstr "はい"
 
-#: trachours/templates/hours_timeline.html:146
+#: trachours/templates/hours_timeline.html:163
 msgid "no"
 msgstr "いいえ"
 
-#: trachours/templates/hours_timeline.html:170
+#: trachours/templates/hours_timeline.html:175
+msgid ""
+"[1:between]\n"
+"                              [2:]\n"
+"                              [3:and]\n"
+"                              [4:]"
+msgstr "[1:][2:] [3:から] [4:]"
+
+#: trachours/templates/hours_timeline.html:200
 msgid "Add filter"
 msgstr "フィルタを追加"
 
-#: trachours/templates/hours_timeline.html:190
+#: trachours/templates/hours_timeline.html:220
 msgid "Columns"
 msgstr "カラム"
 
-#: trachours/templates/hours_timeline.html:203
+#: trachours/templates/hours_timeline.html:233
 msgid "Group results by"
 msgstr "結果のグループ化"
 
-#: trachours/templates/hours_timeline.html:214
+#: trachours/templates/hours_timeline.html:244
 msgid "descending"
 msgstr "降順"
 
-#: trachours/templates/hours_timeline.html:217
+#: trachours/templates/hours_timeline.html:247
 msgid "Show under each result:"
 msgstr "各検索結果の下に表示:"
 
-#: trachours/templates/hours_timeline.html:225
+#: trachours/templates/hours_timeline.html:255
 msgid "Work Comments"
 msgstr "作業コメント"
 
-#: trachours/templates/hours_timeline.html:230
+#: trachours/templates/hours_timeline.html:260
 msgid "Max items per page"
 msgstr "1ページに表示する件数"
 
-#: trachours/templates/hours_timeline.html:274
+#: trachours/templates/hours_timeline.html:304
 #, python-format
 msgid "Edit report {%(id)s} corresponding to this query"
 msgstr "このクエリに対応するレポート {%(id)s} を編集する"
 
-#: trachours/templates/hours_timeline.html:274
+#: trachours/templates/hours_timeline.html:304
 msgid "Edit query"
 msgstr "このクエリを編集"
 
-#: trachours/templates/hours_timeline.html:283
+#: trachours/templates/hours_timeline.html:313
 #, python-format
 msgid "Save updated query in report {%(id)s}"
 msgstr "更新されたクエリをレポート {%(id)s} に保存する"
 
-#: trachours/templates/hours_timeline.html:283
+#: trachours/templates/hours_timeline.html:313
 msgid "Create new report from current query"
 msgstr "現在のクエリから新しいレポートを作成する"
 
-#: trachours/templates/hours_timeline.html:291
+#: trachours/templates/hours_timeline.html:321
 #, python-format
 msgid "Delete report {%(id)s} corresponding to this query"
 msgstr "このクエリに対応するレポート {%(id)s} を削除する"
 
-#: trachours/templates/hours_timeline.html:291
+#: trachours/templates/hours_timeline.html:321
 msgid "Delete query"
 msgstr "このクエリを削除"
 
-#: trachours/templates/hours_timeline.html:298
+#: trachours/templates/hours_timeline.html:328
 msgid ""
 "[1:Note:] See [2:TracQuery]\n"
 "        for help on using queries and [3:TracHoursPluginUserManual] for "
