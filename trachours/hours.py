@@ -351,7 +351,7 @@ class TracHoursPlugin(Component):
 
     def get_query(self, query_id):
         results = []
-        with self.env.db_transaction as db:
+        with self.env.db_query as db:
             cur = db.cursor()
             cur.execute("""
                 SELECT title, description, query FROM ticket_time_query WHERE id=%s
@@ -399,7 +399,7 @@ class TracHoursPlugin(Component):
                         """, (req.args['title'], req.args['description'],
                               req.args['query']))
                 # fixme: duplicate title?
-                with self.env.db_transaction as db:
+                with self.env.db_query as db:
                     cur = db.cursor()
                     cur.execute("""
                         SELECT id FROM ticket_time_query WHERE title = %s
@@ -414,9 +414,9 @@ class TracHoursPlugin(Component):
         if action == 'new':
             data['query'] = dict(id='0',
                                  description='',
-                                 query=query_to_query_string(req.args))
+                                 query=req.args.get('query'))
         elif action == "edit":
-            data['query'] = self.get_query(int(req.args['query_id']))
+            data['query'] = self.get_query(req.args['query_id'])
             data['query']['id'] = int(req.args['query_id'])
 
         else:
@@ -432,7 +432,7 @@ class TracHoursPlugin(Component):
                 for row in rows:
                     row_dict = {}
                     for field, col in zip(row, desc):
-                        row_dict[col[0]] = field
+                        row_dict[col[0]] = field if col[0] != 'query' else re.sub(r'^query:\?', '', field)
                     results.append(row_dict)
             data['queries'] = results
             return 'hours_listqueries.html', data, 'text/html'
@@ -657,14 +657,11 @@ class TracHoursPlugin(Component):
 
         # get data for saved queries
         query_id = req.args.get('query_id')
+        if query_id and not query_id.isdigit():
+            add_warning(req, _("query_id should be an integer, you put '{id}'").format(id=query_id))
+            query_id = None
         if query_id:
-            try:
-                query_id = int(query_id)
-            except ValueError:
-                add_warning(req, _("query_id should be an integer, you put '{id}'").format(id=query_id))
-                query_id = None
-        if query_id:
-            data['query_id'] = query_id
+            data['query_id'] = int(query_id)
             query_data = self.get_query(query_id)
 
             data['query_title'] = query_data['title']
