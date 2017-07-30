@@ -149,8 +149,8 @@ class SetupTracHours(Component):
     def update_custom_fields(self):
         ticket_custom = 'ticket-custom'
 
-        for name in custom_fields:
-            field = custom_fields[name].copy()
+        for name in self.custom_fields:
+            field = self.custom_fields[name].copy()
             field_type = field.pop('type', 'text')
             if not self.config.get(ticket_custom, field_type):
                 self.config.set(ticket_custom, name, field_type)
@@ -167,7 +167,7 @@ class SetupTracHours(Component):
 
         with self.env.db_transaction as db:
             conn, _ = DatabaseManager(self.env).get_connector()
-            stmts = conn.to_sql(ticket_query_table)
+            stmts = conn.to_sql(time_query_table)
             for stmt in stmts:
                 cur = db.cursor()
                 cur.execute(stmt)
