@@ -1,49 +1,49 @@
 # Translations template for TracHours.
-# Copyright (C) 2017 ORGANIZATION
+# Copyright (C) 2018 ORGANIZATION
 # This file is distributed under the same license as the TracHours
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2017.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: TracHours 0.7.1\n"
 "Report-Msgid-Bugs-To: protect.2501@gmail.com\n"
-"POT-Creation-Date: 2017-07-29 16:40+0000\n"
+"POT-Creation-Date: 2018-05-11 14:00+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.4.0\n"
+"Generated-By: Babel 2.5.3\n"
 
-#: trachours/hours.py:62 trachours/templates/hours_user.html:90
+#: trachours/hours.py:66 trachours/templates/hours_user.html:90
 msgid "Ticket"
 msgstr ""
 
-#: trachours/hours.py:64
+#: trachours/hours.py:68
 msgid "Hours Worked"
 msgstr ""
 
-#: trachours/hours.py:65 trachours/templates/hours_ticket.html:21
+#: trachours/hours.py:69 trachours/templates/hours_ticket.html:21
 #: trachours/templates/hours_users.html:104
 msgid "Worker"
 msgstr ""
 
-#: trachours/hours.py:66
+#: trachours/hours.py:70
 msgid "Work submitted by"
 msgstr ""
 
-#: trachours/hours.py:67
+#: trachours/hours.py:71
 msgid "Work done on"
 msgstr ""
 
-#: trachours/hours.py:68
+#: trachours/hours.py:72
 msgid "Work recorded on"
 msgstr ""
 
-#: trachours/hours.py:258 trachours/hours.py:1056
+#: trachours/hours.py:262 trachours/hours.py:1078
 #: trachours/templates/hours_listqueries.html:11
 #: trachours/templates/hours_timeline.html:11
 #: trachours/templates/hours_timeline.html:37
@@ -52,85 +52,89 @@ msgstr ""
 msgid "Hours"
 msgstr ""
 
-#: trachours/hours.py:287 trachours/tests/hours.py:100
+#: trachours/hours.py:291 trachours/tests/hours.py:100
 msgid "The field is not defined. Please check your configuration."
 msgstr ""
 
-#: trachours/hours.py:296 trachours/tests/hours.py:84
+#: trachours/hours.py:300 trachours/tests/hours.py:84
 msgid "Please enter a number for Estimated Hours"
 msgstr ""
 
-#: trachours/hours.py:299 trachours/tests/hours.py:76
+#: trachours/hours.py:303 trachours/tests/hours.py:76
 msgid "Please enter a positive value for Estimated Hours"
 msgstr ""
 
-#: trachours/hours.py:327
+#: trachours/hours.py:331
 msgid "hours for ticket {id}"
 msgstr ""
 
-#: trachours/hours.py:367
+#: trachours/hours.py:355
+msgid "sum hours of ticket {id} and children"
+msgstr ""
+
+#: trachours/hours.py:395
 msgid "No such query {id}"
 msgstr ""
 
-#: trachours/hours.py:667
+#: trachours/hours.py:689
 msgid "query_id should be an integer, you put '{id}'"
 msgstr ""
 
-#: trachours/hours.py:796
+#: trachours/hours.py:818
 msgid ""
 "Warning: estimated hours may be counted more than once if a ticket "
 "appears in multiple groups"
 msgstr ""
 
-#: trachours/hours.py:865 trachours/hours.py:966
+#: trachours/hours.py:887 trachours/hours.py:988
 msgid "RSS Feed"
 msgstr ""
 
-#: trachours/hours.py:892 trachours/hours.py:895
+#: trachours/hours.py:914 trachours/hours.py:917
 msgid "Prev Week"
 msgstr ""
 
-#: trachours/hours.py:894 trachours/hours.py:895
+#: trachours/hours.py:916 trachours/hours.py:917
 msgid "Next Week"
 msgstr ""
 
-#: trachours/hours.py:897 trachours/templates/hours_multiproject.html:11
+#: trachours/hours.py:919 trachours/templates/hours_multiproject.html:11
 msgid "Cross-Project Hours"
 msgstr ""
 
-#: trachours/hours.py:899
+#: trachours/hours.py:921
 msgid "Hours by User"
 msgstr ""
 
-#: trachours/hours.py:906
+#: trachours/hours.py:928
 msgid "Saved Queries"
 msgstr ""
 
-#: trachours/hours.py:968
+#: trachours/hours.py:990
 msgid "Back to Ticket #{id}"
 msgstr ""
 
-#: trachours/hours.py:977
+#: trachours/hours.py:999
 msgid "Hours worked on {project} from {from_date} to {to_date}"
 msgstr ""
 
-#: trachours/hours.py:990 trachours/hours.py:1026
+#: trachours/hours.py:1012 trachours/hours.py:1048
 msgid "{hour}:{min:02} hours worked by {worker}"
 msgstr ""
 
-#: trachours/hours.py:1015
+#: trachours/hours.py:1037
 msgid "Hours worked for ticket {id}"
 msgstr ""
 
-#: trachours/hours.py:1054
+#: trachours/hours.py:1076
 msgid "Hours for {worker}"
 msgstr ""
 
-#: trachours/hours.py:1121
+#: trachours/hours.py:1143
 msgid "Please enter a valid number of hours"
 msgstr ""
 
-#: trachours/hours.py:1130
+#: trachours/hours.py:1152
 msgid "[{url} {hour}\thours] logged for {worker}: ''{comment}''"
 msgstr ""
 
@@ -294,7 +298,7 @@ msgid "Query for Query:"
 msgstr ""
 
 #: trachours/templates/hours_savequery.html:44
-#: trachours/templates/hours_timeline.html:313
+#: trachours/templates/hours_timeline.html:315
 msgid "Save query"
 msgstr ""
 
@@ -425,34 +429,34 @@ msgstr ""
 msgid "Max items per page"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:304
+#: trachours/templates/hours_timeline.html:305
 #, python-format
 msgid "Edit report {%(id)s} corresponding to this query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:304
+#: trachours/templates/hours_timeline.html:305
 msgid "Edit query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:313
+#: trachours/templates/hours_timeline.html:315
 #, python-format
 msgid "Save updated query in report {%(id)s}"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:313
+#: trachours/templates/hours_timeline.html:315
 msgid "Create new report from current query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:321
+#: trachours/templates/hours_timeline.html:324
 #, python-format
 msgid "Delete report {%(id)s} corresponding to this query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:321
+#: trachours/templates/hours_timeline.html:324
 msgid "Delete query"
 msgstr ""
 
-#: trachours/templates/hours_timeline.html:328
+#: trachours/templates/hours_timeline.html:331
 msgid ""
 "[1:Note:] See [2:TracQuery]\n"
 "        for help on using queries and [3:TracHoursPluginUserManual] "
