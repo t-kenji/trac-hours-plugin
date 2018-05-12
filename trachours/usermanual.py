@@ -61,10 +61,6 @@ This component must be enabled to use the !TracHoursPlugin functionality.
 
 `TracHoursRoadmapFilter` adds hours information for milestones at `/roadmap` and `/milestone/<milestone name>`
 
-=== !TracHoursSidebarProvider
-
-The `TracHoursSidebarProvider` component uses the !TicketSidebarProviderPlugin (if enabled) to add a form to each ticket for direct addition of hours to the ticket. Hours will be logged as the authenticated user and comments will not be made.
-
 === !TracHoursByComment
 
 The `TracHoursByComment` component enables adding hours by ticket comments. Comments containing snippets like `5 hours`, `1 hour`, `3.7 hours`, or `0:30 hours` will be added to the total hours for the ticket, provided the commenter has the `TICKET_ADD_HOURS` permission.

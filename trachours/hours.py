@@ -9,7 +9,6 @@
 
 import calendar
 import csv
-import dateutil.parser
 import re
 import time
 from StringIO import StringIO
@@ -31,10 +30,8 @@ from trac.web.chrome import (
     web_context
 )
 
-from componentdependencies.interface import IRequireComponents
-from tracsqlhelper import *
+from sqlhelper import *
 from multiproject import MultiprojectHours
-from db import SetupTracHours
 from utils import get_all_users, get_date
 
 
@@ -57,7 +54,6 @@ class TracHoursPlugin(Component):
     implements(INavigationContributor,
                IPermissionRequestor,
                IRequestHandler,
-               IRequireComponents,
                ITemplateProvider,
                ITemplateStreamFilter,
                ITicketManipulator)
@@ -185,10 +181,6 @@ class TracHoursPlugin(Component):
         """
         execute_non_query(self.env, """
             DELETE FROM ticket_time WHERE ticket=%s""", tid)
-
-    # IRequireComponents methods
-    def requires(self):
-        return [SetupTracHours]
 
     # IPermissionRequestor methods
     def get_permission_actions(self):
@@ -931,8 +923,7 @@ class TracHoursPlugin(Component):
 
                 # the 'GMT' business is wrong
                 # maybe use py2rssgen a la bitsyblog?
-                time_started = dateutil.parser.parse(
-                    entry['time_started'])  # XXX hack
+                time_started = datetime.strptime(entry['time_started'], '%B %d %Y')
                 item['date'] = time_started.strftime('%a, %d %b %Y %T GMT')
 
                 link = req.abs_href(req.path_info, entry['ticket'])

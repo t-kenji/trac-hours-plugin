@@ -14,8 +14,8 @@ from trac.core import Component, implements
 from trac.db.schema import Column, Index, Table
 from trac.env import IEnvironmentSetupParticipant
 from trac.util.datefmt import to_utimestamp, utc
-from tracsqlhelper import *
 
+from sqlhelper import *
 from usermanual import *
 
 # totalhours be a computed field, but computed fields don't yet exist for trac

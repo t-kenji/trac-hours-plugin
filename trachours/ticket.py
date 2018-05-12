@@ -11,7 +11,6 @@ from trac.core import Component, implements
 from trac.perm import PermissionCache
 from trac.ticket.api import ITicketChangeListener, ITicketManipulator
 
-from componentdependencies.interface import IRequireComponents
 from hours import TracHoursPlugin
 
 import re
@@ -27,22 +26,16 @@ except ImportError:
 class TracHoursByComment(Component):
 
     if IEmailHandler:
-        implements(IEmailHandler, IRequireComponents, ITicketChangeListener,
+        implements(IEmailHandler, ITicketChangeListener,
                    ITicketManipulator)
     else:
-        implements(IRequireComponents, ITicketChangeListener,
-                   ITicketManipulator)
+        implements(ITicketChangeListener, ITicketManipulator)
 
     # for ticket comments: 1.5 hours or 1:30 hours
     hours_regex = r'(([0-9]+(\.[0-9]+)?)|([0-9]+:[0-5][0-9])) *hours'
 
     # for singular hours: 1 hour
     singular_hour_regex = r'((^)|(\s*))1 *hour((\W)|($))'
-
-    # IRequireComponents methods
-
-    def requires(self):
-        return [TracHoursPlugin]
 
     # ITicketManipulator methods
 

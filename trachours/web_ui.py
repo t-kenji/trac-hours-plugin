@@ -27,21 +27,13 @@ from trac.web.chrome import (
     Chrome, ITemplateProvider, add_link, add_stylesheet
 )
 
-from componentdependencies.interface import IRequireComponents
 from hours import TracHoursPlugin
-from ticketsidebarprovider.interface import ITicketSidebarProvider
-from ticketsidebarprovider.ticketsidebar import TicketSidebarProvider
-from tracsqlhelper import get_all_dict
+from sqlhelper import get_all_dict
 from utils import get_date, hours_format
 
 
 class TracHoursRoadmapFilter(Component):
-    implements(IRequireComponents, ITemplateStreamFilter)
-
-    # IRequireComponents methods
-
-    def requires(self):
-        return [TracHoursPlugin]
+    implements(ITemplateStreamFilter)
 
     # ITemplateStreamFilter methods
 
@@ -156,44 +148,8 @@ class TracHoursRoadmapFilter(Component):
                 return iter(tag.p(*items, class_='legend'))
 
 
-class TracHoursSidebarProvider(Component):
-    implements(ITicketSidebarProvider, IRequireComponents)
-
-    # IRequireComponents methods
-
-    def requires(self):
-        return [TracHoursPlugin, TicketSidebarProvider]
-
-    # ITicketSidebarProvider methods
-
-    def enabled(self, req, ticket):
-        if ticket.id and req.authname and 'TICKET_ADD_HOURS' in req.perm:
-            return True
-        return False
-
-    def content(self, req, ticket):
-        data = {'worker': req.authname,
-                'action': req.href('hours', ticket.id)}
-        return Chrome(self.env). \
-            load_template('hours_sidebar.html').generate(**data)
-
-    # ITemplateProvider methods
-
-    def get_htdocs_dirs(self):
-        return []
-
-    def get_templates_dirs(self):
-        from pkg_resources import resource_filename
-        return [resource_filename(__name__, 'templates')]
-
-
 class TracUserHours(Component):
-    implements(IRequireComponents, ITemplateProvider, IRequestHandler)
-
-    # IRequireComponents methods
-
-    def requires(self):
-        return [TracHoursPlugin]
+    implements(ITemplateProvider, IRequestHandler)
 
     # ITemplateProvider methods
 
