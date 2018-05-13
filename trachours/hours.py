@@ -282,12 +282,32 @@ class TracHoursPlugin(Component):
                 if ticket_id is None:  # new ticket
                     field = '0'
                 else:
-                    hours = '%.1f' \
-                            % (self.get_total_hours(ticket_id) / 3600.0)
-                    field = tag.a(hours,
-                                  href=req.href('hours', data['ticket'].id),
-                                  title=_("hours for ticket {id}").format(
-                                    id=data['ticket'].id))
+                    sum_total_hours = self.get_total_hours(ticket_id)
+                    own_hours = '%.2f' % (sum_total_hours / 3600.0)
+                    field = tag.a(own_hours,
+                                  href=req.href('hours', ticket_id),
+                                  title=_("hours for ticket {id}").format(id=ticket_id))
+                    if self.env.is_component_enabled('ticketrels.api.TicketRelationsSystem'):
+                        def _get_children_hours(parent_id):
+                            hours = 0
+                            children = []
+                            for parent, child in self.env.db_query("""
+                                    SELECT oneself, ticket from ticketrels
+                                    WHERE oneself=%s AND relations='child'
+                                    """, (parent_id, )):
+                                children.append(child)
+                                hours += self.get_total_hours(child)
+
+                            for _id in children:
+                                hours += _get_children_hours(_id)
+
+                            return hours
+
+                        sum_total_hours += _get_children_hours(ticket_id)
+                        sum_hours = ' (%.2f h)' % (sum_total_hours / 3600.0)
+                        field = tag.span(field,
+                                         tag.span(sum_hours,
+                                                  title=_('sum hours of ticket {id} and children').format(id=ticket_id)))
                 total_hours['rendered'] = field
                 stream |= Transformer(
                     "//input[@id='field-totalhours']").replace(field)
