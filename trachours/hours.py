@@ -22,7 +22,7 @@ from trac.ticket.model import Ticket
 from trac.ticket.query import Query
 from trac.util.datefmt import to_timestamp, utc
 from trac.util.html import html as tag
-from trac.util.translation import _
+from trac.util.translation import domain_functions
 from trac.web.api import IRequestHandler, ITemplateStreamFilter
 from trac.web.chrome import (
     INavigationContributor, ITemplateProvider, add_ctxtnav,
@@ -31,9 +31,10 @@ from trac.web.chrome import (
 )
 
 from sqlhelper import *
-from multiproject import MultiprojectHours
 from utils import get_all_users, get_date
 
+_, tag_, N_, ngettext, add_domain = \
+    domain_functions('trachours', '_', 'tag_', 'N_', 'ngettext', 'add_domain')
 
 def query_to_query_string(query):
     """return a URL query string from a dictionary"""
@@ -59,13 +60,18 @@ class TracHoursPlugin(Component):
                ITicketManipulator)
 
     date_format = '%B %d, %Y'  # XXX should go to api ?
-    fields = [dict(name='id', label='Ticket'),
+    fields = [dict(name='id', label=_('Ticket')),
               # note that ticket_time id is clobbered by ticket id
-              dict(name='seconds_worked', label='Hours Worked'),
-              dict(name='worker', label='Worker'),
-              dict(name='submitter', label='Work submitted by'),
-              dict(name='time_started', label='Work done on'),
-              dict(name='time_submitted', label='Work recorded on')]
+              dict(name='seconds_worked', label=_('Hours Worked')),
+              dict(name='worker', label=_('Worker')),
+              dict(name='submitter', label=_('Work submitted by')),
+              dict(name='time_started', label=_('Work done on')),
+              dict(name='time_submitted', label=_('Work recorded on'))]
+
+    def __init__(self):
+        from pkg_resources import resource_filename
+
+        add_domain(self.env.path, resource_filename(__name__, 'locale'))
 
     def tickets_with_hours(self):
         """return all ticket.ids with hours"""
@@ -293,8 +299,8 @@ class TracHoursPlugin(Component):
                             % (self.get_total_hours(ticket_id) / 3600.0)
                     field = tag.a(hours,
                                   href=req.href('hours', data['ticket'].id),
-                                  title="hours for ticket %s" % data[
-                                      'ticket'].id)
+                                  title=_("hours for ticket {id}").format(
+                                    id=data['ticket'].id))
                 total_hours['rendered'] = field
                 stream |= Transformer(
                     "//input[@id='field-totalhours']").replace(field)
@@ -324,7 +330,7 @@ class TracHoursPlugin(Component):
             SELECT title, description, query FROM ticket_time_query WHERE id=%s
             """, query_id)
         if not results:
-            raise KeyError("No such query %s" % query_id)
+            raise KeyError(_("No such query {id}").format(id=query_id))
         return results[0]
 
     def get_columns(self):
@@ -588,8 +594,9 @@ class TracHoursPlugin(Component):
             try:
                 query_id = int(query_id)
             except ValueError:
-                add_warning(req, "query_id should be an integer, you put '%s'"
-                            % query_id)
+                add_warning(req,
+                    _("query_id should be an integer, you put '{id}'").format(
+                        id=query_id))
                 query_id = None
         if query_id:
             data['query_id'] = query_id
@@ -719,8 +726,8 @@ class TracHoursPlugin(Component):
             query.group = req.args.get('group')
             if not query.group == "id":
                 data['double_count_warning'] = \
-                    "Warning: estimated hours may be counted more than " \
-                    "once if a ticket appears in multiple groups"
+                    _("Warning: estimated hours may be counted more than " \
+                    "once if a ticket appears in multiple groups")
 
             tickets = data['groups'][0][1]
             groups = {}
@@ -772,8 +779,8 @@ class TracHoursPlugin(Component):
         data['labels'].update(labels)
         data['can_add_hours'] = req.perm.has_permission('TICKET_ADD_HOURS')
 
-        data['multiproject'] = self.env.is_component_enabled(
-            MultiprojectHours)
+        from multiproject import MultiprojectHours
+        data['multiproject'] = self.env.is_component_enabled(MultiprojectHours)
 
         from web_ui import TracUserHours
         data['user_hours'] = self.env.is_component_enabled(TracUserHours)
@@ -820,16 +827,18 @@ class TracHoursPlugin(Component):
                  _("Next Week"))
         prevnext_nav(req, _("Prev Week"), _("Next Week"))
 
-        add_ctxtnav(req, 'Cross-Project Hours',
-                    req.href.hours('multiproject'))
-        add_ctxtnav(req, 'Hours by User',
-                    req.href.hours('user', from_day=from_date.day,
-                                   from_month=from_date.month,
-                                   from_year=from_date.year,
-                                   to_day=to_date.year,
-                                   to_month=to_date.month,
-                                   to_year=to_date.year))
-        add_ctxtnav(req, 'Saved Queries', req.href.hours('query/list'))
+        if data['multiproject']:
+            add_ctxtnav(req, _('Cross-Project Hours'),
+                        req.href.hours('multiproject'))
+        if data['user_hours']:
+            add_ctxtnav(req, _('Hours by User'),
+                        req.href.hours('user', from_day=from_date.day,
+                                       from_month=from_date.month,
+                                       from_year=from_date.year,
+                                       to_day=to_date.year,
+                                       to_month=to_date.month,
+                                       to_year=to_date.year))
+        add_ctxtnav(req, _('Saved Queries'), req.href.hours('query/list'))
 
         add_stylesheet(req, 'common/css/report.css')
         add_script(req, 'common/js/query.js')
@@ -890,7 +899,7 @@ class TracHoursPlugin(Component):
         rss_href = req.href(req.path_info, format='rss')
         add_link(req, 'alternate', rss_href, _('RSS Feed'),
                  'application/rss+xml', 'rss')
-        add_ctxtnav(req, 'Back to Ticket #%s' % ticket_id,
+        add_ctxtnav(req, _('Back to Ticket #{id}').format(id=ticket_id),
                     req.href.ticket(ticket_id))
 
         return 'hours_ticket.html', data, 'text/html'
@@ -913,8 +922,8 @@ class TracHoursPlugin(Component):
                 hours = float(entry['seconds_worked'])
                 minutes = int(60 * (hours - int(hours)))
                 hours = int(hours)
-                title = '%s:%02d hours worked by %s' % (hours, minutes,
-                                                        entry['worker'])
+                title = _('{hours}:{mins:02} hours worked by {worker}').format(
+                    hours=hours, mins=minutes, worker=entry['worker'])
                 item['title'] = title
                 item['description'] = title
                 comments = entry.get('comments')
@@ -938,7 +947,7 @@ class TracHoursPlugin(Component):
     def tickethours2rss(self, req, data):
         """adapt data for /hours/<ticket number> to RSS"""
         adapted = {
-            'title': 'Hours worked for ticket %s' % data['ticket'],
+            'title': _('Hours worked for ticket {id}').format(id=data['ticket']),
             'description': data['ticket']['summary']
         }
 
@@ -949,9 +958,9 @@ class TracHoursPlugin(Component):
         items = []
         for record in data['time_records']:
             item = {}
-            title = '%s:%02d hours worked by %s' % (record['hours_worked'],
-                                                    record['minutes_worked'],
-                                                    record['worker'])
+            title = _('{hours}:{mins:02} hours worked by {worker}').format(
+                hours=record['hours_worked'], mins=record['minutes_worked'],
+                worker=record['worker'])
             item['title'] = title
             item['description'] = \
                 '%s%s' % (title, (': %s' % record['comments']) or '')
@@ -977,9 +986,9 @@ class TracHoursPlugin(Component):
         writer = csv.writer(buffer_)
 
         if data['cur_worker_filter'] != '*any':
-            title = 'Hours for %s' % data['cur_worker_filter']
+            title = _('Hours for {cur_worker_filter}').format(**data)
         else:
-            title = 'Hours'
+            title = _('Hours')
         writer.writerow([title, req.abs_href()])
 
         constraint = data['constraints'][0]
@@ -989,9 +998,8 @@ class TracHoursPlugin(Component):
             writer.writerow([key] + constraint[key]['values'])
         writer.writerow([])
 
-        format_ = '%B %d, %Y'
         writer.writerow(['From', 'To'])
-        writer.writerow([data[i].strftime(format_)
+        writer.writerow([data[i].strftime(self.date_format)
                          for i in 'from_date', 'to_date'])
         writer.writerow([])
 
@@ -1053,10 +1061,9 @@ class TracHoursPlugin(Component):
                                   time_started=started,
                                   comments=comments)
             if comments:
-                comment = "[%s %s\thours] logged for %s: ''%s''" \
-                          % ('/hours/%s' % ticket.id,
-                             self.format_hours(seconds_worked),
-                             worker, comments)
+                comment = _("[{url} {hours}\thours] logged for {worker}: ''{comments}''").format(
+                    url='/hours/{}'.format(ticket.id), hours=self.format_hours(seconds_worked),
+                    worker=worker, comments=comments)
 
                 # avoid adding hours that are (erroneously) noted in comments
                 # see #4791

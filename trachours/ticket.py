@@ -7,13 +7,13 @@
 # you should have received as part of this distribution.
 #
 
+import re
+
 from trac.core import Component, implements
 from trac.perm import PermissionCache
 from trac.ticket.api import ITicketChangeListener, ITicketManipulator
 
-from hours import TracHoursPlugin
-
-import re
+from hours import TracHoursPlugin, _
 
 try:
     from mail2trac.email2ticket import ReplyToTicket

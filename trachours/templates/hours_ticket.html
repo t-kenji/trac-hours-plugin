@@ -3,15 +3,16 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
       xmlns:i18n="http://genshi.edgewall.org/i18n"
-      xmlns:xi="http://www.w3.org/2001/XInclude">
+      i18n:domain="trachours">
   <xi:include href="layout.html" />
   <head>
-    <title>#${ticket.id} (${ticket.summary}) Ticket Hours</title>
+    <title i18n:msg="ticket_id, ticket_summary">#${ticket.id} (${ticket.summary}) Ticket Hours</title>
   </head>
 
   <body>
-    <h1>Edit Hours for <a href="${href('ticket', ticket.id)}">Ticket #$ticket.id</a></h1>
+    <h1 i18n:msg="ticket_id">Edit Hours for <a href="${href('ticket', ticket.id)}">Ticket #$ticket.id</a></h1>
       <div>
         <form id="ticket_hours" method="post" action="">
           <table class="listing reports">
@@ -52,14 +53,14 @@
           </table>
           <b>Total:</b> ${total} hours
           <b>Estimated:</b> ${ticket and ticket['estimatedhours'] or 0} hours<br />
-          <input py:if="can_add_hours" type="submit" name="edithours" value="Apply Changes" />
+          <input py:if="can_add_hours" type="submit" name="edithours" value="${_('Apply changes')}" />
         </form>
       </div>
 
       <div>
         <form py:if="can_add_hours and users" method="POST" action="">
           <fieldset>
-            <legend>Add Hours</legend>
+            <legend>Add Hours:</legend>
             <input type="text" name="hours" size="3" style="align-text:right" /> hours
             <input type="text" name="minutes" size="2" style="align-text:right" /> minutes by
             <select name="worker" py:if="can_add_others_hours">
@@ -77,7 +78,7 @@
             </select><br/>
             Description (optional):<br />
             <textarea name="comments" rows="10" cols="60"></textarea><br />
-            <input type="submit" name="addhours" value="Add Hours" />
+            <input type="submit" name="addhours" value="${_('Add hours')}" />
           </fieldset>
         </form>
 

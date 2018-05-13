@@ -3,12 +3,13 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
       xmlns:i18n="http://genshi.edgewall.org/i18n"
-      xmlns:xi="http://www.w3.org/2001/XInclude">
+      i18n:domain="trachours">
   <xi:include href="layout.html" />
 
   <head>
-    <title>Hours for $worker</title>
+    <title i18n:msg="worker">Hours for $worker</title>
     <script type="text/javascript" src="${chrome.htdocs_location}js/folding.js"></script>
     <script type="text/javascript" src="${chrome.htdocs_location}js/query.js"></script>
     <script type="text/javascript">
@@ -30,7 +31,7 @@
   <body>
 
     <div id="content" class="query">
-      <h1>Hours for ${worker}</h1>
+      <h1 i18n:msg="worker">Hours for ${worker}</h1>
       <form id="query" method="get" action="">
         Hours from
         <!-- date + worker selection -->

@@ -15,6 +15,7 @@ from trac.db.schema import Column, Index, Table
 from trac.env import IEnvironmentSetupParticipant
 from trac.util.datefmt import to_utimestamp, utc
 
+from hours import _
 from sqlhelper import *
 from usermanual import *
 
@@ -22,18 +23,19 @@ from usermanual import *
 custom_fields = {
     'estimatedhours': {
         'type': 'text',
-        'label': 'Estimated Hours',
+        'label': _('Estimated Hours'),
         'value': '0'
     },
     'totalhours': {
         'type': 'text',
-        'label': 'Total Hours',
+        'label': _('Total Hours'),
         'value': '0'
     }
 }
 
 
 class SetupTracHours(Component):
+
     implements(IEnvironmentSetupParticipant)
 
     # IEnvironmentSetupParticipant methods

@@ -15,7 +15,9 @@
 -->
 <div xmlns="http://www.w3.org/1999/xhtml"
      xmlns:py="http://genshi.edgewall.org/"
-     xmlns:xi="http://www.w3.org/2001/XInclude">
+     xmlns:xi="http://www.w3.org/2001/XInclude"
+     xmlns:i18n="http://genshi.edgewall.org/i18n"
+     i18n:domain="trachours">
 
   <h3>${double_count_warning}</h3>
   <py:for each="group_index, (groupname, results) in enumerate(groups)">
@@ -23,7 +25,7 @@
       ${labels[query.group]}:
       ${query.group in ['owner', 'reporter'] and authorinfo(groupname) or groupname}
     </h2>
-    <span class="numrows">(${ngettext('%(num)s match', '%(num)s matches', len(results))}, total time ${total_times[groupname]} hours worked, estimated ${total_estimated_times[groupname]})</span>
+    <span class="numrows">(${ngettext('%(num)s match', '%(num)s matches', len(results))}, <i18n:msg params="total_times,total_estimated_times">total time ${total_times[groupname]} hours worked, estimated ${total_estimated_times[groupname]}</i18n:msg>)</span>
     <table class="listing tickets">
       <thead>
         <tr>
