@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TracHours 0.7.3\n"
 "Report-Msgid-Bugs-To: protect.2501@gmail.com\n"
-"POT-Creation-Date: 2018-05-14 05:53+0900\n"
+"POT-Creation-Date: 2018-05-14 06:20+0900\n"
 "PO-Revision-Date: 2018-05-13 01:15+0900\n"
 "Last-Translator: t-kenji <protect.2501@gmail.com>\n"
 "Language: ja\n"
@@ -52,7 +52,7 @@ msgstr "作業実施日"
 msgid "Work recorded on"
 msgstr "作業登録日"
 
-#: trachours/hours.py:220 trachours/hours.py:999
+#: trachours/hours.py:220 trachours/hours.py:998
 #: trachours/templates/hours_listqueries.html:11
 #: trachours/templates/hours_timeline.html:11
 #: trachours/templates/hours_timeline.html:36
@@ -81,65 +81,65 @@ msgstr "チケット {id} の作業時間"
 msgid "sum hours of ticket {id} and children"
 msgstr "チケット {id} と子チケットの合計作業時間"
 
-#: trachours/hours.py:341
+#: trachours/hours.py:340
 msgid "No such query {id}"
 msgstr "クエリ {id} はありません"
 
-#: trachours/hours.py:606
+#: trachours/hours.py:605
 msgid "query_id should be an integer, you put '{id}'"
 msgstr "query_id は整数でなければなりませんが、あなたの入力は '{id}' です"
 
-#: trachours/hours.py:737
+#: trachours/hours.py:736
 msgid ""
 "Warning: estimated hours may be counted more than once if a ticket "
 "appears in multiple groups"
 msgstr "警告: チケットが複数のグループに表示される場合、見積時間は重複してカウントされる可能性があります"
 
-#: trachours/hours.py:806 trachours/hours.py:908
+#: trachours/hours.py:805 trachours/hours.py:907
 msgid "RSS Feed"
 msgstr "RSS フィード"
 
-#: trachours/hours.py:833 trachours/hours.py:836
+#: trachours/hours.py:832 trachours/hours.py:835
 msgid "Prev Week"
 msgstr "先週"
 
-#: trachours/hours.py:835 trachours/hours.py:836
+#: trachours/hours.py:834 trachours/hours.py:835
 msgid "Next Week"
 msgstr "翌週"
 
-#: trachours/hours.py:839 trachours/templates/hours_multiproject.html:11
+#: trachours/hours.py:838 trachours/templates/hours_multiproject.html:11
 msgid "Cross-Project Hours"
 msgstr "プロジェクト間の作業時間"
 
-#: trachours/hours.py:842
+#: trachours/hours.py:841
 msgid "Hours by User"
 msgstr "作業者毎の作業時間"
 
-#: trachours/hours.py:849
+#: trachours/hours.py:848
 msgid "Saved Queries"
 msgstr "保存されたクエリ"
 
-#: trachours/hours.py:910
+#: trachours/hours.py:909
 msgid "Back to Ticket #{id}"
 msgstr "チケット #{id} に戻る"
 
-#: trachours/hours.py:933 trachours/hours.py:969
+#: trachours/hours.py:932 trachours/hours.py:968
 msgid "{hours}:{mins:02} hours worked by {worker}"
 msgstr "{worker} が {hours}:{mins:02} 作業しました"
 
-#: trachours/hours.py:958
+#: trachours/hours.py:957
 msgid "Hours worked for ticket {id}"
 msgstr "チケット {id} の作業時間"
 
-#: trachours/hours.py:997
+#: trachours/hours.py:996
 msgid "Hours for {cur_worker_filter}"
 msgstr "{cur_worker_filter} の作業時間"
 
-#: trachours/hours.py:1063
+#: trachours/hours.py:1062
 msgid "Please enter a valid number of hours"
 msgstr "有効な作業時間を入力してください"
 
-#: trachours/hours.py:1072
+#: trachours/hours.py:1071
 msgid "[{url} {hours}\thours] logged for {worker}: ''{comments}''"
 msgstr "{worker} に [{url} {hours}\thours] を記録しました: ''{comments}''"
 
@@ -150,6 +150,14 @@ msgstr "プロジェクト間での {worker} の作業時間"
 #: trachours/multiproject.py:201
 msgid "Hours for {worker} on {project}"
 msgstr "{project} における {worker} の作業時間"
+
+#: trachours/ticket.py:52
+msgid "Add work hours:"
+msgstr "作業時間を追加"
+
+#: trachours/ticket.py:71
+msgid "worked for {hours} hours"
+msgstr "{hours} hours 作業した"
 
 #: trachours/web_ui.py:128
 msgid "Estimated Hours:"
