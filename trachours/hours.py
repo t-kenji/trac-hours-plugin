@@ -13,6 +13,7 @@ import re
 import time
 from StringIO import StringIO
 from datetime import datetime, timedelta
+from urllib import urlencode
 
 from genshi.filters import Transformer
 from trac.core import *
@@ -35,20 +36,6 @@ from utils import get_all_users, get_date
 
 _, tag_, N_, ngettext, add_domain = \
     domain_functions('trachours', '_', 'tag_', 'N_', 'ngettext', 'add_domain')
-
-def query_to_query_string(query):
-    """return a URL query string from a dictionary"""
-    args = []
-    for k, v in query.items():
-        try:
-            if isinstance(v, basestring):
-                args.append((k, v))
-            else:
-                args.extend([(k, i) for i in v])
-        except TypeError:
-            args.append((k, v))
-    args = '&'.join('%s=%s' % i for i in args)
-    return args
 
 
 class TracHoursPlugin(Component):
@@ -372,7 +359,7 @@ class TracHoursPlugin(Component):
         if action == 'new':
             data['query'] = dict(id='0',
                                  description='',
-                                 query=query_to_query_string(req.args))
+                                 query=req.args['query'])
         elif action == "edit":
             data['query'] = self.get_query(int(req.args['query_id']))
             data['query']['id'] = int(req.args['query_id'])
@@ -391,13 +378,13 @@ class TracHoursPlugin(Component):
             del req.args['save_query']
             if 'query_id' in req.args:
                 del req.args['query_id']
-            args = query_to_query_string(req.args)
+            args = urlencode(req.args)
             req.redirect(
                 req.href(req.path_info) + "/query?action=new&" + args)
             return True
         elif req.args.get('edit_query'):
             del req.args['edit_query']
-            args = query_to_query_string(req.args)
+            args = urlencode(req.args)
             req.redirect(
                 req.href(req.path_info) + "/query?action=edit&" + args)
             return True
