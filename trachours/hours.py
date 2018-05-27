@@ -671,9 +671,11 @@ class TracHoursPlugin(Component):
         data['order'] = order
         data['desc'] = desc
 
+        args = dict(req.args)
+        args['col'] = cols
         headers = [{'name': col,
                     'label': labels.get(col),
-                    'href': self.get_href(req, query, req.args,
+                    'href': self.get_href(req, query, args,
                                           context.href,
                                           order=col,
                                           desc=(col == order and not desc)
@@ -806,9 +808,11 @@ class TracHoursPlugin(Component):
         prev_args = dict(req.args)
         next_args = dict(req.args)
 
+        prev_args['col'] = cols
         prev_args['from_date'] = user_time(req, format_date, from_date - timedelta(days=7))
         prev_args['to_date'] = user_time(req, format_date, from_date)
 
+        next_args['col'] = cols
         next_args['from_date'] = user_time(req, format_date, to_date)
         next_args['to_date'] = user_time(req, format_date, to_date + timedelta(days=7))
 
