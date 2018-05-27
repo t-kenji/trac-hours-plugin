@@ -35,10 +35,8 @@
               </td>
               <py:choose test="can_add_others_hours or can_add_hours and req.authname == record['worker']">
                 <td py:when="True"><nobr>
-                  <input type="text" name="hours_${record['id']}" size="3" style="text-align:right"
-                         value="${record['hours_worked']}"/>:
-                  <input type="text" name="minutes_${record['id']}" size="2" style="text-align:right"
-                         value="${'%02d' % record['minutes_worked']}"/></nobr>
+		  <input type="time" name="hours_${record['id']}" step="900"
+			 value="${record['hours_worked']}" /></nobr>
                 </td>
                 <td py:when="False">${record['hours_worked']}:${'%02d' % record['minutes_worked']}</td>
               </py:choose>
@@ -61,21 +59,12 @@
         <form py:if="can_add_hours and users" method="POST" action="">
           <fieldset>
             <legend>Add Hours:</legend>
-            <input type="text" name="hours" size="3" style="align-text:right" /> hours
-            <input type="text" name="minutes" size="2" style="align-text:right" /> minutes by
+	    <input type="time" name="hours" step='900' /> by
             <select name="worker" py:if="can_add_others_hours">
               <option py:for="user in users" value="$user" py:attrs="{'selected': user == req.authname or None}">$user</option>
             </select>
             <span py:if="not can_add_others_hours">$req.authname</span> on
-            <select name="month">
-              <option py:for="month in months" value="${month[0]}" py:attrs="{'selected': month[2] or None}">${to_unicode(month[1])}</option>
-            </select>
-            <select name="day">
-              <option py:for="day in days" value="${day[0]}" py:attrs="{'selected': day[1] or None}">${day[0]}</option>
-            </select>
-            <select name="year">
-              <option py:for="year in years" value="${year}">$year</option>
-            </select><br/>
+	    <input type="text" name="date" value="${format_date(now)}" class="trac-datepicker" /><br />
             Description (optional):<br />
             <textarea name="comments" rows="10" cols="60"></textarea><br />
             <input type="submit" name="addhours" value="${_('Add hours')}" />

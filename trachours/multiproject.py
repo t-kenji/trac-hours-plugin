@@ -8,20 +8,21 @@
 #
 
 import calendar
-import datetime
 import feedparser
 import os
 import urllib2
+from datetime import datetime, timedelta
 
 from trac.core import Component, implements
 from trac.env import open_environment
 from trac.util.html import html as tag
+from trac.util.datefmt import parse_date, user_time
 from trac.web.api import IRequestHandler
 from trac.web.href import Href
 
 from trachours.hours import _
 from trachours.feed import total_hours
-from trachours.utils import get_date, hours_format, urljoin
+from trachours.utils import hours_format, urljoin
 
 try:
     import lxml.html
@@ -126,7 +127,7 @@ class MultiprojectHours(Component):
         """
         req.perm.require('TICKET_VIEW_HOURS')
         data = {}
-        now = datetime.datetime.now()
+        now = datetime.now()
 
         # XXX copy + pasted from hours.py
         data['months'] = [(i, calendar.month_name[i]) for i in range(1, 13)]
@@ -134,21 +135,15 @@ class MultiprojectHours(Component):
         data['days'] = range(1, 32)
 
         # get the date range for the query
-        if 'from_year' in req.args:
-            from_date = get_date(req.args['from_year'],
-                                 req.args.get('from_month'),
-                                 req.args.get('from_day'))
-
+        if 'from_date' in req.args:
+            from_date = user_time(req, parse_date, req.args['from_date'])
         else:
-            from_date = datetime.datetime(now.year, now.month, now.day)
-            from_date = from_date - datetime.timedelta(
+            from_date = datetime(now.year, now.month, now.day)
+            from_date = from_date - timedelta(
                 days=7)  # 1 week ago, by default
 
-        if 'to_year' in req.args:
-            to_date = get_date(req.args['to_year'],
-                               req.args.get('to_month'),
-                               req.args.get('to_day'),
-                               end_of_day=True)
+        if 'to_date' in req.args:
+            to_date = user_time(req, parse_date, req.args['to_date'])
         else:
             to_date = now
 

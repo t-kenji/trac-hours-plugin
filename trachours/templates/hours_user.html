@@ -35,46 +35,12 @@
       <form id="query" method="get" action="">
         Hours from
         <!-- date + worker selection -->
-        <select name="from_month">
-          <option py:for="month in months" value="${month[0]}"
-            py:attrs="{'selected': month[0] == from_date.month or None}">
-            ${to_unicode(month[1])}
-          </option>
-        </select>
-        <select name="from_day">
-          <option py:for="day in days" value="${day}"
-            py:attrs="{'selected': day == from_date.day or None}">
-            ${day}
-          </option>
-        </select>
-        <select name="from_year">
-          <option py:for="year in years" value="${year}"
-            py:attrs="{'selected': year == from_date.year or None}">
-            ${year}
-          </option>
-        </select>
+        <input type="text" name="from_date" value="${format_date(from_date)}" class="trac-datepicker" />
         to
-        <select name="to_month">
-          <option py:for="month in months" value="${month[0]}"
-            py:attrs="{'selected': month[0] == to_date.month or None}">
-            ${to_unicode(month[1])}
-          </option>
-        </select>
-        <select name="to_day">
-          <option py:for="day in days" value="${day}"
-            py:attrs="{'selected': day == to_date.day or None}">
-            ${day}
-          </option>
-        </select>
-        <select name="to_year">
-          <option py:for="year in years" value="${year}"
-            py:attrs="{'selected': year == to_date.year or None}">
-            ${year}
-          </option>
-        </select>
+        <input type="text" name="to_date" value="${format_date(to_date)}" class="trac-datepicker" />
 
-        <a href="${prev_url}">Week of ${to_unicode(prev_week.strftime('%B %d, %Y'))}
-          - ${to_unicode(from_date.strftime('%B %d, %Y'))}</a>
+        <a href="${prev_url}">Week of ${to_unicode(format_date(prev_week))}
+          - ${to_unicode(format_date(from_date))}</a>
 
         <!-- update -->
         <div class="buttons">
@@ -104,8 +70,8 @@
       </table>
 
       <ul>
-        <li><a href="${req.href('/hours/user', from_day=from_date.day, from_month=from_date.month, from_year=from_date.year, to_day=to_date.year, to_month=to_date.month, to_year=to_date.year)}">User Hours</a></li>
-        <li><a href="${req.href('/hours', from_day=from_date.day, from_month=from_date.month, from_year=from_date.year, to_day=to_date.year, to_month=to_date.month, to_year=to_date.year)}">Query Hours</a></li>
+        <li><a href="${req.href('/hours/user', from_date=format_date(from_date), to_date=format_date(to_date))}">User Hours</a></li>
+        <li><a href="${req.href('/hours', from_date=format_date(from_date), to_date=format_date(to_date))}">Query Hours</a></li>
       </ul>
 
       <div id="help" i18n:msg="">

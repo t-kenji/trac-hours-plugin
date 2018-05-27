@@ -21,18 +21,20 @@ from trac.perm import IPermissionRequestor
 from trac.ticket.api import ITicketManipulator, TicketSystem
 from trac.ticket.model import Ticket
 from trac.ticket.query import Query
-from trac.util.datefmt import to_timestamp, utc
+from trac.util.datefmt import (
+    format_date, parse_date, user_time, to_timestamp, utc
+)
 from trac.util.html import html as tag
 from trac.util.translation import domain_functions
 from trac.web.api import IRequestHandler, ITemplateStreamFilter
 from trac.web.chrome import (
-    INavigationContributor, ITemplateProvider, add_ctxtnav,
+    Chrome, INavigationContributor, ITemplateProvider, add_ctxtnav,
     add_link, add_script, add_stylesheet, add_warning, prevnext_nav,
     web_context
 )
 
 from sqlhelper import *
-from utils import get_all_users, get_date
+from utils import get_all_users
 
 _, tag_, N_, ngettext, add_domain = \
     domain_functions('trachours', '_', 'tag_', 'N_', 'ngettext', 'add_domain')
@@ -320,15 +322,13 @@ class TracHoursPlugin(Component):
 
     def format_hours(self, seconds):
         """returns a formatted string of the number of hours"""
-        precision = 1
+        precision = 2
         return str(round(seconds / 3600., precision))
 
     def format_hours_and_minutes(self, seconds):
         """returns a formatted string of the number of hours"""
-        return seconds / 3600, (seconds % 3600) / 60
-
-    def format_date(self, date):
-        return datetime.fromtimestamp(date).strftime(self.date_format)
+        return '{hours:02}:{minutes:02}'.format(hours=seconds / 3600,
+                                                minutes=(seconds % 3600) / 60)
 
     # Methods for the query interface
 
@@ -529,7 +529,7 @@ class TracHoursPlugin(Component):
 
         return constraints
 
-    def get_href(self, query, args, *a, **kw):
+    def get_href(self, req, query, args, *a, **kw):
         base = query.get_href(*a, **kw)
         cols = args.get('col')
         if cols:
@@ -539,15 +539,11 @@ class TracHoursPlugin(Component):
                                    for col in cols if col not in query.cols)
 
         now = datetime.now()
-        if 'from_day' in args:
-            base += '&from_year=%s&from_month=%s&from_day=%s&to_year=%s' \
-                    '&to_month=%s&to_day=%s' \
-                    % (args.get('from_year', now.year),
-                       args.get('from_month', now.month),
-                       args['from_day'],
-                       args.get('to_year', now.year),
-                       args.get('to_month', now.month),
-                       args.get('to_day', now.day))
+        if 'from_date' in args:
+            base += '&{}'.format(urlencode({
+                    'from_date': args['from_date'],
+                    'to_date': args.get('to_date', user_time(req, format_date, now))
+                }))
         return base.replace('/query', '/hours')
 
     def display_html(self, req, query):
@@ -628,21 +624,15 @@ class TracHoursPlugin(Component):
 
         now = datetime.now()
         # get the date range for the query
-        if 'from_year' in req.args:
-            from_date = get_date(req.args['from_year'],
-                                 req.args.get('from_month'),
-                                 req.args.get('from_day'))
-
+        if 'from_date' in req.args:
+            from_date = user_time(req, parse_date, req.args['from_date'])
         else:
             from_date = datetime(now.year, now.month, now.day)
             from_date = from_date - timedelta(
                 days=7)  # 1 week ago, by default
 
-        if 'to_year' in req.args:
-            to_date = get_date(req.args['to_year'],
-                               req.args.get('to_month'),
-                               req.args.get('to_day'),
-                               end_of_day=True)
+        if 'to_date' in req.args:
+            to_date = user_time(req, parse_date, req.args['to_date'])
         else:
             to_date = now
 
@@ -683,7 +673,7 @@ class TracHoursPlugin(Component):
 
         headers = [{'name': col,
                     'label': labels.get(col),
-                    'href': self.get_href(query, req.args,
+                    'href': self.get_href(req, query, req.args,
                                           context.href,
                                           order=col,
                                           desc=(col == order and not desc)
@@ -775,11 +765,13 @@ class TracHoursPlugin(Component):
                 record['seconds_worked'] = self.format_hours(
                     record['seconds_worked'])  # XXX misleading name
             if 'time_started' in record:
-                record['time_started'] = self.format_date(
-                    record['time_started'])
+                record['time_started'] = user_time(req,
+                                                   format_date,
+                                                   record['time_started'])
             if 'time_submitted' in record:
-                record['time_submitted'] = self.format_date(
-                    record['time_submitted'])
+                record['time_submitted'] = user_time(req,
+                                                     format_date,
+                                                     record['time_submitted'])
 
         data['query'].num_items = num_items
         data['labels'] = TicketSystem(self.env).get_ticket_field_labels()
@@ -814,23 +806,15 @@ class TracHoursPlugin(Component):
         prev_args = dict(req.args)
         next_args = dict(req.args)
 
-        prev_args['from_year'] = (from_date - timedelta(days=7)).year
-        prev_args['from_month'] = (from_date - timedelta(days=7)).month
-        prev_args['from_day'] = (from_date - timedelta(days=7)).day
-        prev_args['to_year'] = from_date.year
-        prev_args['to_month'] = from_date.month
-        prev_args['to_day'] = from_date.day
+        prev_args['from_date'] = user_time(req, format_date, from_date - timedelta(days=7))
+        prev_args['to_date'] = user_time(req, format_date, from_date)
 
-        next_args['from_year'] = to_date.year
-        next_args['from_month'] = to_date.month
-        next_args['from_day'] = to_date.day
-        next_args['to_year'] = (to_date + timedelta(days=7)).year
-        next_args['to_month'] = (to_date + timedelta(days=7)).month
-        next_args['to_day'] = (to_date + timedelta(days=7)).day
+        next_args['from_date'] = user_time(req, format_date, to_date)
+        next_args['to_date'] = user_time(req, format_date, to_date + timedelta(days=7))
 
-        add_link(req, 'prev', self.get_href(query, prev_args, context.href),
+        add_link(req, 'prev', self.get_href(req, query, prev_args, context.href),
                  _("Prev Week"))
-        add_link(req, 'next', self.get_href(query, next_args, context.href),
+        add_link(req, 'next', self.get_href(req, query, next_args, context.href),
                  _("Next Week"))
         prevnext_nav(req, _("Prev Week"), _("Next Week"))
 
@@ -839,16 +823,14 @@ class TracHoursPlugin(Component):
                         req.href.hours('multiproject'))
         if data['user_hours']:
             add_ctxtnav(req, _('Hours by User'),
-                        req.href.hours('user', from_day=from_date.day,
-                                       from_month=from_date.month,
-                                       from_year=from_date.year,
-                                       to_day=to_date.year,
-                                       to_month=to_date.month,
-                                       to_year=to_date.year))
+                        req.href.hours('user',
+                                       from_date=user_time(req, format_date, from_date),
+                                       to_date=user_time(req, format_date, to_date)))
         add_ctxtnav(req, _('Saved Queries'), req.href.hours('query/list'))
 
         add_stylesheet(req, 'common/css/report.css')
         add_script(req, 'common/js/query.js')
+        Chrome(self.env).add_jquery_ui(req)
 
         return 'hours_timeline.html', data, 'text/html'
 
@@ -879,9 +861,10 @@ class TracHoursPlugin(Component):
         # add additional data for the template
         total = 0
         for record in time_records:
-            record['date_started'] = self.format_date(record['time_started'])
-            record['hours_worked'], record[
-                'minutes_worked'] = self.format_hours_and_minutes(
+            record['date_started'] = user_time(req,
+                                               format_date,
+                                               record['time_started'])
+            record['hours_worked'] = self.format_hours_and_minutes(
                 record['seconds_worked'])
             total += record['seconds_worked']
         total = self.format_hours(total)
@@ -889,9 +872,7 @@ class TracHoursPlugin(Component):
         data = {
             'can_add_hours': req.perm.has_permission('TICKET_ADD_HOURS'),
             'can_add_others_hours': req.perm.has_permission('TRAC_ADMIN'),
-            'days': days,
-            'months': months,
-            'years': years,
+            'now': now,
             'users': get_all_users(self.env),
             'total': total,
             'ticket': ticket,
@@ -908,6 +889,7 @@ class TracHoursPlugin(Component):
                  'application/rss+xml', 'rss')
         add_ctxtnav(req, _('Back to Ticket #{id}').format(id=ticket_id),
                     req.href.ticket(ticket_id))
+        Chrome(self.env).add_jquery_ui(req)
 
         return 'hours_ticket.html', data, 'text/html'
 
@@ -1041,24 +1023,22 @@ class TracHoursPlugin(Component):
             assert req.perm.has_permission('TICKET_ADMIN')
 
         # when the work was done
-        if 'year' in req.args:  # assume month and day are provided
-
-            started = datetime(
-                *map(int, [req.args[i] for i in 'year', 'month', 'day']))
-            if started == datetime(now.year, now.month, now.day):
+        if 'date' in req.args:
+            started = user_time(req, parse_date, req.args['date'])
+            self.env.log.info('started: {} ({})'.format(started, type(started)))
+            if started == datetime(now.year, now.month, now.day, tzinfo=req.tz):
                 # assumes entries made for today should be ordered
                 # as they are entered
                 started = now
-
         else:
             started = now
 
         # how much work was done
-        hours = req.args['hours'].strip() or 0
-        minutes = req.args['minutes'].strip() or 0
+        match = re.match(r'([0-9]+:[0-5][0-9])', req.args.get('hours', '0:00'))
         try:
+            hours, minutes = match.groups()[0].split(':')
             seconds_worked = int(float(hours) * 3600 + float(minutes) * 60)
-        except ValueError:
+        except:
             add_warning(req, _("Please enter a valid number of hours"))
         else:
             comments = req.args.get('comments', '').strip()

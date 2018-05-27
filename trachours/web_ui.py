@@ -9,9 +9,9 @@
 
 import calendar
 import csv
-import datetime
 import time
 from StringIO import StringIO
+from datetime import datetime, timedelta
 from pkg_resources import parse_version
 
 from genshi.filters import Transformer
@@ -20,6 +20,7 @@ from trac import __version__ as TRAC_VERSION
 from trac.core import *
 from trac.ticket import Ticket
 from trac.ticket.model import Milestone
+from trac.util.datefmt import format_date, parse_date, user_time
 from trac.util.html import html as tag
 from trac.util.translation import _
 from trac.web.api import IRequestHandler, ITemplateStreamFilter
@@ -29,7 +30,7 @@ from trac.web.chrome import (
 
 from hours import TracHoursPlugin, _
 from sqlhelper import get_all_dict
-from utils import get_date, hours_format
+from utils import hours_format
 
 
 class TracHoursRoadmapFilter(Component):
@@ -97,14 +98,15 @@ class TracHoursRoadmapFilter(Component):
             b = StreamBuffer()
             stream |= Transformer(find_xpath).copy(b).end().select(xpath). \
                 append(
-                self.MilestoneMarkup(b, hours, req.href, this_milestone))
+                self.MilestoneMarkup(req, b, hours, req.href, this_milestone))
 
         return stream
 
     class MilestoneMarkup(object):
         """Iterator for Transformer markup injection"""
 
-        def __init__(self, buffer, hours, href, this_milestone):
+        def __init__(self, req, buffer, hours, href, this_milestone):
+            self.req = req
             self.buffer = buffer
             self.hours = hours
             self.href = href
@@ -133,9 +135,7 @@ class TracHoursRoadmapFilter(Component):
                                           class_="first interval"))
             date = hours['date']
             link = self.href("hours", milestone=milestone,
-                             from_year=date.year,
-                             from_month=date.month,
-                             from_day=date.day)
+                             from_date=user_time(self.req, format_date, date))
             if parse_version(TRAC_VERSION) < parse_version('1.0'):
                 items.append(tag.dt(tag.a(_("Total Hours:"), href=link)))
                 items.append(
@@ -177,6 +177,7 @@ class TracUserHours(Component):
         add_stylesheet(req, 'common/css/report.css')
         add_link(req, 'alternate', req.href(req.path_info, format='csv'),
                  'CSV', 'text/csv', 'csv')
+        Chrome(self.env).add_jquery_ui(req)
 
         return self.user(req, user)
 
@@ -184,36 +185,26 @@ class TracUserHours(Component):
 
     def date_data(self, req, data):
         """data for the date"""
-        now = datetime.datetime.now()
+        now = datetime.now()
         data['days'] = range(1, 32)
         data['months'] = list(enumerate(calendar.month_name))
         data['years'] = range(now.year, now.year - 10, -1)
-        if 'from_year' in req.args:
-            from_date = get_date(req.args['from_year'],
-                                 req.args.get('from_month'),
-                                 req.args.get('from_day'))
-
+        if 'from_date' in req.args:
+            from_date = user_time(req, parse_date, req.args['from_date'])
         else:
-            from_date = datetime.datetime(now.year, now.month, now.day)
-            from_date = from_date - datetime.timedelta(days=7)
-        if 'to_year' in req.args:
-            to_date = get_date(req.args['to_year'],
-                               req.args.get('to_month'),
-                               req.args.get('to_day'),
-                               end_of_day=True)
+            from_date = datetime(now.year, now.month, now.day)
+            from_date = from_date - timedelta(days=7)
+        if 'to_date' in req.args:
+            to_date = user_time(req, parse_date, req.args['to_date'])
         else:
             to_date = now
 
         data['from_date'] = from_date
         data['to_date'] = to_date
-        data['prev_week'] = from_date - datetime.timedelta(days=7)
+        data['prev_week'] = from_date - timedelta(days=7)
         args = dict(req.args)
-        args['from_year'] = data['prev_week'].year
-        args['from_month'] = data['prev_week'].month
-        args['from_day'] = data['prev_week'].day
-        args['to_year'] = from_date.year
-        args['to_month'] = from_date.month
-        args['to_day'] = from_date.day
+        args['from_date'] = user_time(req, format_date, data['prev_week'])
+        args['to_date'] = user_time(req, format_date, from_date)
 
         data['prev_url'] = req.href('/hours/user', **args)
 
@@ -262,6 +253,7 @@ class TracUserHours(Component):
         # add_link(req, 'next', self.get_href(query, args, context.href),
         #         _('Next Week'))
         # prevnext_nav(req, _('Prev Week'), _('Next Week'))
+        Chrome(self.env).add_jquery_ui(req)
 
         return 'hours_users.html', data, "text/html"
 

@@ -48,37 +48,9 @@
             py:with="field_names = sorted(fields.iterkeys(), key=lambda name: fields[name].label.lower())">
         Hours from
         <!-- date + worker selection -->
-        <select name="from_month">
-          <option py:for="month in months" value="${month[0]}"
-                  py:attrs="{'selected': month[0] == from_date.month or None}">${to_unicode(month[1])}
-          </option>
-        </select>
-        <select name="from_day">
-          <option py:for="day in days" value="${day}"
-                  py:attrs="{'selected': day == from_date.day or None}">${day}
-          </option>
-        </select>
-        <select name="from_year">
-          <option py:for="year in years" value="${year}"
-                  py:attrs="{'selected': year == from_date.year or None}">${year}
-          </option>
-        </select>
+        <input type="text" name="from_date" value="${format_date(from_date)}" class="trac-datepicker" />
         to
-        <select name="to_month">
-          <option py:for="month in months" value="${month[0]}"
-                  py:attrs="{'selected': month[0] == to_date.month or None}">${to_unicode(month[1])}
-          </option>
-        </select>
-        <select name="to_day">
-          <option py:for="day in days" value="${day}"
-                  py:attrs="{'selected': day == to_date.day or None}">${day}
-          </option>
-        </select>
-        <select name="to_year">
-          <option py:for="year in years" value="${year}"
-                  py:attrs="{'selected': year == to_date.year or None}">${year}
-          </option>
-        </select>
+        <input type="text" name="to_date" value="${format_date(to_date)}" class="trac-datepicker" />
         worked by
         <select name="worker_filter">
           <option py:for="user in ['*any'] + users" value="${user}"
@@ -209,7 +181,7 @@
               <label>
                 <input type="checkbox" name="col" value="$column"
                        checked="${any(value == column for value in col) or None}" />
-                ${fields.get(column, {'label': column or 'none'}).label}
+                ${labels.get(column, column)}
               </label>
             </py:for>
           </div>
