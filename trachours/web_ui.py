@@ -196,6 +196,7 @@ class TracUserHours(Component):
             from_date = from_date - timedelta(days=7)
         if 'to_date' in req.args:
             to_date = user_time(req, parse_date, req.args['to_date'])
+            to_date = to_date + timedelta(hours=23, minutes=59, seconds=59)
         else:
             to_date = now
 

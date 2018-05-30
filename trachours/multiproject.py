@@ -144,6 +144,7 @@ class MultiprojectHours(Component):
 
         if 'to_date' in req.args:
             to_date = user_time(req, parse_date, req.args['to_date'])
+            to_date = to_date + timedelta(hours=23, minutes=59, seconds=59)
         else:
             to_date = now
 

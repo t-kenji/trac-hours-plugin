@@ -633,6 +633,7 @@ class TracHoursPlugin(Component):
 
         if 'to_date' in req.args:
             to_date = user_time(req, parse_date, req.args['to_date'])
+            to_date = to_date + timedelta(hours=23, minutes=59, seconds=59)
         else:
             to_date = now
 
@@ -1029,7 +1030,6 @@ class TracHoursPlugin(Component):
         # when the work was done
         if 'date' in req.args:
             started = user_time(req, parse_date, req.args['date'])
-            self.env.log.info('started: {} ({})'.format(started, type(started)))
             if started == datetime(now.year, now.month, now.day, tzinfo=req.tz):
                 # assumes entries made for today should be ordered
                 # as they are entered
