@@ -952,9 +952,8 @@ class TracHoursPlugin(Component):
         items = []
         for record in data['time_records']:
             item = {}
-            title = _('{hours}:{mins:02} hours worked by {worker}').format(
-                hours=record['hours_worked'], mins=record['minutes_worked'],
-                worker=record['worker'])
+            title = _('{hours} hours worked by {worker}').format(
+                hours=record['hours_worked'], worker=record['worker'])
             item['title'] = title
             item['description'] = \
                 '%s%s' % (title, (': %s' % record['comments']) or '')

@@ -35,10 +35,10 @@
               </td>
               <py:choose test="can_add_others_hours or can_add_hours and req.authname == record['worker']">
                 <td py:when="True"><nobr>
-		  <input type="time" name="hours_${record['id']}" step="900"
-			 value="${record['hours_worked']}" /></nobr>
+                  <input type="time" name="hours_${record['id']}" step="900"
+                         value="${record['hours_worked']}" /></nobr>
                 </td>
-                <td py:when="False">${record['hours_worked']}:${'%02d' % record['minutes_worked']}</td>
+                <td py:when="False">${record['hours_worked']}</td>
               </py:choose>
               <td>${to_unicode(record['date_started'])}</td>
               <td>${record['comments']}</td>
