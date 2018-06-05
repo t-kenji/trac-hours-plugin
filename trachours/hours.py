@@ -1077,9 +1077,8 @@ class TracHoursPlugin(Component):
         for field, newval in req.args.items():
             if field.startswith("hours_"):
                 id_ = int(field[len("hours_"):])
-                new_hours[id_] = \
-                    (int(float(newval) * 3600) +
-                     int(float(req.args['minutes_%s' % id_]) * 60))
+                h, m = newval.split(':')
+                new_hours[id_] = (int(float(h) * 3600 + float(m) * 60))
 
         # remove checked hours
         for field, newval in req.args.items():
