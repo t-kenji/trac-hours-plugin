@@ -7,6 +7,7 @@
 # you should have received as part of this distribution.
 #
 
+import re
 import calendar
 import csv
 import time
@@ -25,7 +26,7 @@ from trac.util.html import html as tag
 from trac.util.translation import _
 from trac.web.api import IRequestHandler, ITemplateStreamFilter
 from trac.web.chrome import (
-    Chrome, ITemplateProvider, add_link, add_stylesheet
+    Chrome, ITemplateProvider, add_ctxtnav, add_link, add_stylesheet
 )
 
 from hours import TracHoursPlugin, _
@@ -166,20 +167,21 @@ class TracUserHours(Component):
 
     def match_request(self, req):
         return req.path_info == '/hours/user' or \
-               req.path_info.startswith('/hours/user/')
+               re.match(r'/hours/user/(?:tickets|dates)/(?:\w+)', req.path_info) is not None
 
     def process_request(self, req):
         req.perm.require('TICKET_VIEW_HOURS')
         if req.path_info.rstrip('/') == '/hours/user':
             return self.users(req)
-        user = req.path_info.split('/hours/user/', 1)[-1]
+        m = re.match(r'/hours/user/(?P<field>\w+)/(?P<user>\w+)',
+                     req.path_info)
+        field = m.group('field')
+        user = m.group('user')
 
-        add_stylesheet(req, 'common/css/report.css')
-        add_link(req, 'alternate', req.href(req.path_info, format='csv'),
-                 'CSV', 'text/csv', 'csv')
-        Chrome(self.env).add_jquery_ui(req)
-
-        return self.user(req, user)
+        if field == 'tickets':
+            return self.user_by_ticket(req, user)
+        elif field == 'dates':
+            return self.user_by_date(req, user)
 
     # Internal methods
 
@@ -190,22 +192,24 @@ class TracUserHours(Component):
         data['months'] = list(enumerate(calendar.month_name))
         data['years'] = range(now.year, now.year - 10, -1)
         if 'from_date' in req.args:
-            from_date = user_time(req, parse_date, req.args['from_date'])
+            from_date_raw = user_time(req, parse_date, req.args['from_date'])
         else:
-            from_date = datetime(now.year, now.month, now.day)
-            from_date = from_date - timedelta(days=7)
+            from_date_raw = datetime(now.year, now.month, now.day)
+            from_date_raw = from_date_raw - timedelta(days=7)
         if 'to_date' in req.args:
-            to_date = user_time(req, parse_date, req.args['to_date'])
-            to_date = to_date + timedelta(hours=23, minutes=59, seconds=59)
+            to_date_raw = user_time(req, parse_date, req.args['to_date'])
+            to_date_raw = to_date_raw + timedelta(hours=23, minutes=59, seconds=59)
         else:
-            to_date = now
+            to_date_raw = now
 
-        data['from_date'] = from_date
-        data['to_date'] = to_date
-        data['prev_week'] = from_date - timedelta(days=7)
+        data['from_date_raw'] = from_date_raw
+        data['from_date'] = user_time(req, format_date, from_date_raw)
+        data['to_date_raw'] = to_date_raw
+        data['to_date'] = user_time(req, format_date, to_date_raw)
+        data['prev_week'] = from_date_raw - timedelta(days=7)
         args = dict(req.args)
         args['from_date'] = user_time(req, format_date, data['prev_week'])
-        args['to_date'] = user_time(req, format_date, from_date)
+        args['to_date'] = user_time(req, format_date, from_date_raw)
 
         data['prev_url'] = req.href('/hours/user', **args)
 
@@ -228,27 +232,61 @@ class TracUserHours(Component):
         hours = get_all_dict(self.env, """
             SELECT * FROM ticket_time
             WHERE time_started >= %s AND time_started < %s
-            """, *[int(time.mktime(i.timetuple()))
-                   for i in (data['from_date'], data['to_date'])])
+            """, *[int(time.mktime(data[i].timetuple()))
+                   for i in ('from_date_raw', 'to_date_raw')])
+        details = req.args.get('details')
         worker_hours = {}
-        for entry in hours:
-            worker = entry['worker']
-            if worker not in worker_hours:
-                worker_hours[worker] = 0
+        if details != 'date':
+            for entry in hours:
+                worker = entry['worker']
+                if worker not in worker_hours:
+                    worker_hours[worker] = 0
 
-            if milestone and milestone != \
-                    Ticket(self.env, entry['ticket']).values.get('milestone'):
-                continue
+                if milestone and milestone != \
+                        Ticket(self.env, entry['ticket']).values.get('milestone'):
+                    continue
 
-            worker_hours[worker] += entry['seconds_worked']
+                worker_hours[worker] += entry['seconds_worked']
 
-        worker_hours = [(worker, seconds / 3600.)
-                        for worker, seconds in sorted(worker_hours.items())]
+            worker_hours = [(worker, seconds / 3600.)
+                            for worker, seconds in sorted(worker_hours.items())]
+        else:
+            for entry in hours:
+                date = user_time(req, format_date, entry['time_started'])
+                worker = entry['worker']
+                key = (date, worker)
+                if key not in worker_hours:
+                    worker_hours[key] = 0
+
+                if milestone and milestone != \
+                        Ticket(self.env, entry['ticket']).values.get('milestone'):
+                    continue
+
+                worker_hours[key] += entry['seconds_worked']
+
+            worker_hours = [(key[0], key[1], seconds / 3600.)
+                            for key, seconds in sorted(worker_hours.items())]
+        data['details'] = details
         data['worker_hours'] = worker_hours
+        data['total_hours'] = sum(hours[-1] for hours in worker_hours)
 
         if req.args.get('format') == 'csv':
             req.send(self.export_csv(req, data))
 
+        add_stylesheet(req, 'common/css/report.css')
+        if details == 'date':
+            add_ctxtnav(req, _('Hours summary'),
+                        req.href.hours('user',
+                                       from_date=data['from_date'],
+                                       to_date=data['to_date']))
+        else:
+            add_ctxtnav(req, _('Hours by date'),
+                        req.href.hours('user',
+                                       details='date',
+                                       from_date=data['from_date'],
+                                       to_date=data['to_date']))
+        add_link(req, 'alternate', req.href(req.path_info, format='csv'),
+                 'CSV', 'text/csv', 'csv')
         # add_link(req, 'prev', self.get_href(query, args, context.href),
         #         _('Prev Week'))
         # add_link(req, 'next', self.get_href(query, args, context.href),
@@ -256,16 +294,16 @@ class TracUserHours(Component):
         # prevnext_nav(req, _('Prev Week'), _('Next Week'))
         Chrome(self.env).add_jquery_ui(req)
 
-        return 'hours_users.html', data, "text/html"
+        return 'hours_users.html', data, 'text/html'
 
-    def user(self, req, user):
+    def user_by_ticket(self, req, user):
         """hours page for a single user"""
         data = {'hours_format': hours_format,
                 'worker': user}
         self.date_data(req, data)
         args = [user]
-        args += [int(time.mktime(i.timetuple()))
-                 for i in (data['from_date'], data['to_date'])]
+        args += [int(time.mktime(data[i].timetuple()))
+                 for i in ('from_date_raw', 'to_date_raw')]
         hours = get_all_dict(self.env, """
             SELECT * FROM ticket_time
             WHERE worker=%s AND time_started >= %s AND time_started < %s
@@ -291,13 +329,11 @@ class TracUserHours(Component):
         if req.args.get('format') == 'csv':
             buffer = StringIO()
             writer = csv.writer(buffer)
-            format = '%B %d, %Y'
             title = _("Hours for {user}").format(user=user)
             writer.writerow([title, req.abs_href()])
             writer.writerow([])
             writer.writerow(['From', 'To'])
-            writer.writerow([data[i].strftime(format)
-                             for i in 'from_date', 'to_date'])
+            writer.writerow([data['from_date'], data['to_date']])
             writer.writerow([])
             writer.writerow(['Ticket', 'Hours'])
             for ticket, hours in worker_hours:
@@ -305,7 +341,96 @@ class TracUserHours(Component):
 
             req.send(buffer.getvalue(), 'text/csv')
 
-        return 'hours_user.html', data, 'text/html'
+        add_stylesheet(req, 'common/css/report.css')
+        add_ctxtnav(req, _('Hours by Query'),
+                    req.href.hours(from_date=data['from_date'],
+                                   to_date=data['to_date']))
+        add_ctxtnav(req, _('Hours by User'),
+                    req.href.hours('user',
+                                   from_date=data['from_date'],
+                                   to_date=data['to_date']))
+        add_ctxtnav(req, _('Hours by date'),
+                    req.href.hours('user/dates/{}'.format(user),
+                                   from_date=data['from_date'],
+                                   to_date=data['to_date']))
+        add_link(req, 'alternate', req.href(req.path_info, format='csv'),
+                 'CSV', 'text/csv', 'csv')
+        Chrome(self.env).add_jquery_ui(req)
+
+        return 'hours_user_by_ticket.html', data, 'text/html'
+
+    def user_by_date(self, req, user):
+        """hours page for a single user"""
+        data = {'hours_format': hours_format,
+                'worker': user}
+        self.date_data(req, data)
+        args = [user]
+        args += [int(time.mktime(data[i].timetuple()))
+                 for i in ('from_date_raw', 'to_date_raw')]
+        hours = get_all_dict(self.env, """
+            SELECT * FROM ticket_time
+            WHERE worker=%s AND time_started >= %s AND time_started < %s
+            """, *args)
+        worker_hours = {}
+        for entry in hours:
+            date = user_time(req, format_date, entry['time_started'])
+            ticket = entry['ticket']
+            if date not in worker_hours:
+                worker_hours[date] = {
+                    'seconds': 0,
+                    'tickets': [],
+                }
+            worker_hours[date]['seconds'] += entry['seconds_worked']
+            if ticket not in worker_hours[date]['tickets']:
+                worker_hours[date]['tickets'].append(ticket)
+
+        data['tickets'] = dict([(entry['ticket'], Ticket(self.env, entry['ticket']))
+                                for entry in hours])
+
+        # sort by ticket number and convert to hours
+        worker_hours = [(date, details['tickets'], details['seconds'] / 3600.)
+                        for date, details in
+                        sorted(worker_hours.items())]
+
+        data['worker_hours'] = worker_hours
+        data['total_hours'] = sum(hours[2] for hours in worker_hours)
+
+        if req.args.get('format') == 'csv':
+            buffer = StringIO()
+            writer = csv.writer(buffer)
+            title = _("Hours for {user}").format(user=user)
+            writer.writerow([title, req.abs_href()])
+            writer.writerow([])
+            writer.writerow(['From', 'To'])
+            writer.writerow([data['from_date'], data['to_date']])
+            writer.writerow([])
+            writer.writerow(['Ticket', 'Hours'])
+            for date, tickets, hours in worker_hours:
+                ids = ['#{}'.format(id) for id in tickets]
+                writer.writerow([date, ','.join(ids), hours])
+
+            req.send(buffer.getvalue(), 'text/csv')
+
+        add_stylesheet(req, 'common/css/report.css')
+        add_ctxtnav(req, _('Hours by Query'),
+                    req.href.hours(from_date=data['from_date'],
+                                   to_date=data['to_date']))
+        add_ctxtnav(req, _('Hours by User'),
+                    req.href.hours('user',
+                                   from_date=data['from_date'],
+                                   to_date=data['to_date']))
+        add_ctxtnav(req, _('Hours by ticket'),
+                    req.href.hours('user/tickets/{}'.format(user),
+                                   from_date=data['from_date'],
+                                   to_date=data['to_date']))
+        add_link(req, 'alternate', req.href(req.path_info,
+                                            format='csv',
+                                            from_date=data['from_date'],
+                                            to_date=data['to_date']),
+                 'CSV', 'text/csv', 'csv')
+        Chrome(self.env).add_jquery_ui(req)
+
+        return 'hours_user_by_date.html', data, 'text/html'
 
     def export_csv(self, req, data, sep=',', mimetype='text/csv'):
         content = StringIO()
@@ -316,8 +441,7 @@ class TracUserHours(Component):
         writer.writerow([title, req.abs_href()])
         writer.writerow([])
         writer.writerow(['From', 'To'])
-        writer.writerow([data[i].strftime('%B %d, %Y')
-                         for i in 'from_date', 'to_date'])
+        writer.writerow([data['from_date'], data['to_date']])
         if data['milestone']:
             writer.writerow(['Milestone', data['milestone']])
         writer.writerow([])

@@ -35,12 +35,12 @@
       <form id="query" method="get" action="">
         Hours from
         <!-- date + worker selection -->
-        <input type="text" name="from_date" value="${format_date(from_date)}" class="trac-datepicker" />
+        <input type="text" name="from_date" value="${from_date}" class="trac-datepicker" />
         to
-        <input type="text" name="to_date" value="${format_date(to_date)}" class="trac-datepicker" />
+        <input type="text" name="to_date" value="${to_date}" class="trac-datepicker" />
 
         <a href="${prev_url}">Week of ${to_unicode(format_date(prev_week))}
-          - ${to_unicode(format_date(from_date))}</a>
+          - ${to_unicode(from_date)}</a>
 
         <!-- update -->
         <div class="buttons">
@@ -51,9 +51,9 @@
 
       </form>
 
-      <b>Total Hours:</b> $total_hours
+      <b>Total Hours:</b> ${hours_format % total_hours}
       <table class="listing tickets">
-        <tr><th>Ticket</th><th>Hours</th></tr>
+        <tr class="trac-columns"><th>Ticket</th><th>Hours</th></tr>
         <tr py:for="ticket_id, hours in worker_hours">
           <td>
             <a href="${req.href('ticket', ticket_id)}">
@@ -68,11 +68,6 @@
           </td>
         </tr>
       </table>
-
-      <ul>
-        <li><a href="${req.href('/hours/user', from_date=format_date(from_date), to_date=format_date(to_date))}">User Hours</a></li>
-        <li><a href="${req.href('/hours', from_date=format_date(from_date), to_date=format_date(to_date))}">Query Hours</a></li>
-      </ul>
 
       <div id="help" i18n:msg="">
         <strong>Note:</strong> See <a href="${href.wiki('TracHoursPluginUserManual')}">TracHoursPluginUserManual</a>

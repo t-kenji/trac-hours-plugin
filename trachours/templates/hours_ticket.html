@@ -29,7 +29,7 @@
               <tr py:for="record in time_records">
               <!--td>${record['worker']}</td-->
               <td>
-                <a href="${req.href('hours', 'user', record['worker'])}">
+                <a href="${req.href('hours', 'user', 'dates', record['worker'])}">
                 ${record['worker']}
                 </a>
               </td>
