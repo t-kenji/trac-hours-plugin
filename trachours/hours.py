@@ -630,9 +630,7 @@ class TracHoursPlugin(Component):
         if 'from_date' in req.args:
             from_date = user_time(req, parse_date, req.args['from_date'])
         else:
-            from_date = datetime(now.year, now.month, now.day)
-            from_date = from_date - timedelta(
-                days=7)  # 1 week ago, by default
+            from_date = datetime(now.year, now.month, now.day) # today, by default
 
         if 'to_date' in req.args:
             to_date = user_time(req, parse_date, req.args['to_date'])
@@ -645,7 +643,7 @@ class TracHoursPlugin(Component):
         data['years'] = range(now.year, now.year - 10, -1)
         data['days'] = range(1, 32)
         data['users'] = get_all_users(self.env)
-        data['cur_worker_filter'] = req.args.get('worker_filter', '*any')
+        data['cur_worker_filter'] = req.args.get('worker_filter', req.authname)
 
         data['from_date'] = from_date
         data['to_date'] = to_date
