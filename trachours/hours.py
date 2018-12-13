@@ -538,6 +538,9 @@ class TracHoursPlugin(Component):
             base += '&' + "&".join("col=%s" % col
                                    for col in cols if col not in query.cols)
 
+        if 'worker_filter' in args:
+            base += '&worker_filter={}'.format(args.get('worker_filter'))
+
         now = datetime.now()
         if 'from_date' in args:
             base += '&{}'.format(urlencode({
@@ -674,6 +677,8 @@ class TracHoursPlugin(Component):
 
         args = dict(req.args)
         args['col'] = cols
+        if data['cur_worker_fileter'] != '*any':
+            args['worker_filter'] = data['cur_worker_filter']
         headers = [{'name': col,
                     'label': labels.get(col),
                     'href': self.get_href(req, query, args,
