@@ -675,7 +675,7 @@ class TracHoursPlugin(Component):
 
         args = dict(req.args)
         args['col'] = cols
-        if data['cur_worker_fileter'] != '*any':
+        if data['cur_worker_filter'] != '*any':
             args['worker_filter'] = data['cur_worker_filter']
         headers = [{'name': col,
                     'label': labels.get(col),
